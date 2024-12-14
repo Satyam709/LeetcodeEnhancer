@@ -17,6 +17,7 @@ function evaluate(dataObj) {
             for(let i =0; i <= unlockers.length -1; i ++) { 
                 let unlocker = new unlockers[i]()
                 try { 
+                    console.log("Unlocking " + unlocker.name);
                     unlocker.unlock()
                 }
                 catch (e) { 
@@ -41,4 +42,4 @@ function main() {
 }
 
 console.log("Booting up unlocker wait for 3 seconds");
-setTimeout(main, 3000)
+setTimeout(main, 5000)
