@@ -26,7 +26,7 @@ class ProblemTableUnlocker{
     }
 
     modifyPremiumProblemHref = (row) => {
-        let isPremium = row.getAttribute("is-premium") == "true"
+        let isPremium = row.getAttribute("is-premium") == "true" // to modify
         if(isPremium){
             this.removePremiumIcons(row)
             let problemId = row.getAttribute("problem-id")

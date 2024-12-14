@@ -11,6 +11,8 @@ import { EditorialUnlocker } from "./modules/Unlocker/EditorialUnlocker";
 function evaluate(dataObj) { 
     for(const url in dataObj) { 
         if (window.location.href.includes(url)) { 
+            console.log("Unlocking data for " + url);
+            
             let unlockers = dataObj[url]
             for(let i =0; i <= unlockers.length -1; i ++) { 
                 let unlocker = new unlockers[i]()
@@ -28,6 +30,7 @@ function evaluate(dataObj) {
 }
 
 function main() {
+    console.log("Unlocker is running");
     let urls = {
         "https://leetcode.com/problemset": [ProblemTableUnlocker, CompaniesProblemUnlocker, TopProblemUnlocker], 
         "https://leetcode.com/problem-list": [ProblemTableUnlocker, TopProblemUnlocker], 
@@ -37,4 +40,5 @@ function main() {
     evaluate(urls)
 }
 
-main()
+console.log("Booting up unlocker wait for 3 seconds");
+setTimeout(main, 3000)
