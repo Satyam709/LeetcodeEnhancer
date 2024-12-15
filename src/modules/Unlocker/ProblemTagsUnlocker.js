@@ -17,6 +17,8 @@ class ProblemTagsUnlocker{
     }
 
     onTagButtonClicked = () => { 
+        console.log("Tag button clicked");
+        
         if(this.isFetching) return 
         this.isFetching=true
         let problemName = document.URL.split('/')[4]
@@ -32,8 +34,8 @@ class ProblemTagsUnlocker{
     }
 
     unlock() { 
-        this.elementModifier.modifyElement()
         this.elementModifier.addTagButtonOnClickListener(this.onTagButtonClicked)
+        this.elementModifier.modifyElement()
         this.analyticsManager.fireUnlockedDataEvent(this.name)
     }
 
