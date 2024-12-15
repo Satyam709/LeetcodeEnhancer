@@ -136,8 +136,22 @@ class ProblemTagsElementModifier {
     tagDiv.parentElement.replaceChild(newNode, tagDiv);
     newNode.style.backgroundColor = CSSStyler.COLOR_ACCENT;
     newNode.style.color = "black";
+
+    let content = this.getDescrptionTabContent();
+    let a = content.childNodes[0].childNodes[0].childNodes[3].childNodes[7];
+
+    // make svg invisible
+    let svg = a.querySelectorAll("svg")[0];
+    svg.style.visibility = "hidden";
+
+    svg.parentElement.style.color = CSSStyler.COLOR_ACCENT;
+
+    let newNode2 = a.cloneNode(true);
+    a.parentElement.replaceChild(newNode2, a);
+
     for (let i = 0; i <= this.tagButtonListener.length - 1; i++) {
       newNode.addEventListener("click", this.tagButtonListener[i]);
+      newNode2.addEventListener("click", this.tagButtonListener[i]);
     }
   }
 
