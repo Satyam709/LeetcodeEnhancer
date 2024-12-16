@@ -5,11 +5,10 @@ class ProblemTableElementModifier {
   }
 
   modifyElement() {
-    this.observer = new MutationObserver((mutationsList) => {
-        console.log("mutation observed");
+    this.observer = new MutationObserver(() => {
       this.modifyActiveElement();
     });
-    //this.modifyActiveElement();
+    this.modifyActiveElement();
     this.addObserverToProblemTable();
   }
 
@@ -45,20 +44,18 @@ class ProblemTableElementModifier {
   }
 
   modifyActiveElement = () => {
-    // if (this.isTableLoading()) {
-    //     console.log("table is loading, waiting for 4000ms");
-    //   window.setTimeout(() => {
-    //     this.modifyActiveElement.bind(this)();
-    //   }, 3000);
-    //   return;
-    // }
+    if (this.isTableLoading()) {
+        console.log("table is loading, waiting for 100ms");
+      window.setTimeout(() => {
+        this.modifyActiveElement.bind(this)();
+      }, 100);
+      return;
+    }
     this.disconnectObserverToProblemTable();
     let table = this.getTable();
     let problemsets =  this.getProblemSets();
-    console.log("count of elements to modify :", problemsets.length);
     
     for (let i = 0; i <= problemsets.length - 1; i++) {
-      console.log("editing problemset ", i);
 
       let cells = problemsets[i].querySelectorAll('[role="cell"]');
       let problemName = cells[1].textContent;
@@ -79,9 +76,8 @@ class ProblemTableElementModifier {
 
   addObserverToProblemTable() {
     let table = this.getTable();
-    console.log("table ", table);
 
-    if (table == null) {
+    if (!table) {
       console.log("table is null, waiting for 3000ms");
       window.setTimeout(() => {
         this.addObserverToProblemTable.bind(this)();

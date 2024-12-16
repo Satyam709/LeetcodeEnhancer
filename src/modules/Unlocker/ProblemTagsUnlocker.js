@@ -16,9 +16,7 @@ class ProblemTagsUnlocker{
         this.name = "ProblemTagsUnlocker"
     }
 
-    onTagButtonClicked = () => { 
-        console.log("Tag button clicked");
-        
+    onTagButtonClicked = () => {         
         if(this.isFetching) return 
         this.isFetching=true
         let problemName = document.URL.split('/')[4]

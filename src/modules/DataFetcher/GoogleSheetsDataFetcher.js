@@ -37,7 +37,6 @@ class GoogleSheetsProblemTableDataFetcher {
     let url = GoogleSheetsAPIManager.getUrl(range);
     let response = await fetch(url);
     let data = await response.json();
-    console.log("data fetched ", data);
     
     let parsedData = this.parseProblemFrequencyData(data["values"]);
     return parsedData;

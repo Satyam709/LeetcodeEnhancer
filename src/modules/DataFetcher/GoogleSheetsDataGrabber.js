@@ -43,7 +43,6 @@ class GoogleSheetsDataGrabber {
         let url = this.incrementor.getNextColumnUrl() 
         let response = await fetch(url)
         if(response.status == 400) {
-            console.log(this.data)
             this.promiseResolve(this.data)
             return 
         } 
