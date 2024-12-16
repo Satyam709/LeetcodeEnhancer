@@ -1,6 +1,6 @@
 {
     "name": "Leetcode Premium Unlocker",
-    "version": "0.8.7",
+    "version": "1.0.1",
     "description": "Inject crowdsourced Leetcode premium data",
     "permissions": ["storage", "unlimitedStorage"],
     "action": {
