@@ -105,8 +105,9 @@ class ProblemTagsElementModifier {
 
   getCompaniesButton() {
     let content = this.getDescrptionTabContent();
-    let companiesButton =
-      content.getElementsByClassName("flex gap-1")[1].childNodes[2];
+    let companiesButton = content.querySelectorAll(
+      "div.flex.gap-1 div.py-1"
+    )[2];
     return companiesButton;
   }
 
@@ -138,7 +139,9 @@ class ProblemTagsElementModifier {
     newNode.style.color = "black";
 
     let content = this.getDescrptionTabContent();
-    let a = content.childNodes[0].childNodes[0].childNodes[3].childNodes[7];
+    let a = content.querySelectorAll(
+      '.mt-6.flex.flex-col.gap-3 div[class="flex flex-col"]'
+    )[1];
 
     // make svg invisible
     let svg = a.querySelectorAll("svg")[0];
