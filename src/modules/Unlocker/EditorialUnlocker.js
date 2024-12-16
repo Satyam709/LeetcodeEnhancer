@@ -36,14 +36,11 @@ class EditorialUnlocker {
     }
     let problemUrl = url.substring(0, index+1);
 
-    console.log("modified url ", problemUrl);
-
     if (problemUrl == undefined) return;
     this.containerManager.clearModalContent();
     this.containerManager.openModal();
     this.containerManager.showLoadingIcon();
-    console.log("fetching data for 204");
-    //this.dataFetcher.fetchData("204").then((data) => this.onDataFetched(data)); using url fetcher instead
+    //this.dataFetcher.fetchData("").then((data) => this.onDataFetched(data)); using url fetcher instead
     GoogleSheetsEditorialDataFetcher.fetchEditorialDataByUrl(problemUrl).then(
       (data) => this.onDataFetched(data)
     );

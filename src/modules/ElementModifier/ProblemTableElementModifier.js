@@ -85,7 +85,6 @@ class ProblemTableElementModifier {
       return;
     }
     
-    console.log("obseving table ");
     var config = { childList: true, subtree: true };
     this.observer.observe(table, config);
   }

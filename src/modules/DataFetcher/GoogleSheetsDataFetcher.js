@@ -298,8 +298,7 @@ class GoogleSheetsEditorialDataFetcher {
         let editorialData = await editorialResponse.json();
 
         let editorialValues = editorialData["values"];
-        console.log(editorialValues[0][0]);
-        
+
         return editorialValues
           ? editorialValues[0][0]
           : "<h1>No editorial found</h1>";
@@ -308,6 +307,124 @@ class GoogleSheetsEditorialDataFetcher {
 
     // If no matching URL is found
     return "<h1>URL not found</h1>";
+  }
+
+  static async fetchProblemDetailsByUrl(targetUrl) {
+    const sheetName = "Problem";
+    const urlColumn = "F"; // Column containing URLs
+    const difficultyColumn = "G"; // Column containing Difficulty
+    const problemHtmlColumn = "K"; // Column containing Problem HTML
+    const editorialColumn = "L"; // Column containing Editorial
+
+    // Define the range to fetch URLs
+    const urlRange = `${sheetName}!${urlColumn}1:${urlColumn}`; // Fetch all rows in column F
+
+    // Fetch all URLs in column F
+    const urlFetchUrl = GoogleSheetsAPIManager.getUrl(urlRange);
+    const urlResponse = await fetch(urlFetchUrl);
+    const urlData = await urlResponse.json();
+
+    const urlValues = urlData["values"]; // Array of rows in column F
+    if (!urlValues) return { error: "No data found in the URL column." };
+
+    // Loop through the rows to find the matching URL
+    for (let row = 0; row < urlValues.length; row++) {
+      if (urlValues[row][0] === targetUrl) {
+        // If URL matches, fetch difficulty, problem HTML, and editorial for the same row
+        const rowIndex = row + 1;
+
+        const range = `${sheetName}!${difficultyColumn}${rowIndex},${problemHtmlColumn}${rowIndex},${editorialColumn}${rowIndex}`;
+        const fetchRangeUrl = GoogleSheetsAPIManager.getUrl(range);
+
+        const detailsResponse = await fetch(fetchRangeUrl);
+        const detailsData = await detailsResponse.json();
+
+        const detailsValues = detailsData["values"];
+        if (!detailsValues || detailsValues.length === 0) {
+          return { error: "No data found for the specified URL." };
+        }
+
+        // Extract difficulty, problem HTML, and editorial
+        const [difficulty, problemHtml, editorial] = detailsValues[0];
+
+        return {
+          difficulty: difficulty || "No difficulty data available.",
+          problemHtml: problemHtml || "No problem HTML available.",
+          editorial: editorial || "No editorial data available.",
+        };
+      }
+    }
+
+    // If no matching URL is found
+    return { error: "URL not found in the sheet." };
+  }
+
+  // static async fetchAllDetailsByUrl(targetUrl) {
+  //   const sheetName = "Problem";
+  //   const urlColumn = "F"; // Column containing URLs
+
+  //   // Define the range to fetch all rows in the sheet
+  //   const range = `${sheetName}!A1:Z`; // Assuming the sheet has columns A to Z
+
+  //   // Fetch all rows in the sheet
+  //   const sheetUrl = GoogleSheetsAPIManager.getUrl(range);
+  //   const response = await fetch(sheetUrl);
+  //   const data = await response.json();
+
+  //   const rows = data["values"]; // Array of rows in the sheet
+  //   if (!rows || rows.length === 0)
+  //     return { error: "No data found in the sheet." };
+
+  //   // Loop through the rows to find the matching URL in column F
+  //   const urlColumnIndex = 5; // Column F is the 6th column (0-indexed)
+  //   for (let row of rows) {
+  //     if (row[urlColumnIndex] === targetUrl) {
+  //       // If URL matches, return the entire row as an object
+  //       console.log("found row ", row);
+  //       return row;
+  //     }
+  //   }
+
+  //   // If no matching URL is found
+  //   return null;
+  // }
+
+  static async fetchAllDetailsByUrl(targetUrl) {
+    const sheetName = "Problem";
+    const urlColumn = "F"; // Column containing URLs
+    const urlColumnRange = `${sheetName}!${urlColumn}1:${urlColumn}`; // Only fetch column F
+
+    // Step 1: Fetch URLs from column F
+    const urlColumnUrl = GoogleSheetsAPIManager.getUrl(urlColumnRange);
+    const urlResponse = await fetch(urlColumnUrl);
+    const urlData = await urlResponse.json();
+
+    const urlValues = urlData["values"]; // Array of URLs in column F
+    if (!urlValues || urlValues.length === 0) {
+      return { error: "No URLs found in the sheet." };
+    }
+
+    // Find the row index of the target URL
+    for (let rowIndex = 0; rowIndex < urlValues.length; rowIndex++) {
+      if (urlValues[rowIndex][0] === targetUrl) {
+        // Step 2: Fetch the specific row using the row index
+        const rowRange = `${sheetName}!A${rowIndex + 1}:Z${rowIndex + 1}`; // Fetch the entire row
+        const rowUrl = GoogleSheetsAPIManager.getUrl(rowRange);
+        const rowResponse = await fetch(rowUrl);
+        const rowData = await rowResponse.json();
+
+        const rowValues = rowData["values"];
+        if (rowValues && rowValues.length > 0) {
+          // Return the full row data
+          return rowValues[0];
+        } else {
+          return null;
+        }
+      }
+    }
+
+    // If the URL is not found in column F
+    return null;
   }
 }
 

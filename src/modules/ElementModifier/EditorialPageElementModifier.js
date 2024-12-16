@@ -74,8 +74,6 @@ class EditorialPageElementModifier {
     const tab = document.querySelector(
       `div[data-layout-path="${tabPath}"] .bg-blocker`
     );
-    console.log("tab got ? -> ", tab);
-    console.log(tab != null);
 
     return tab != null;
   }

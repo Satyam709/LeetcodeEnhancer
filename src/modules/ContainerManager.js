@@ -25,6 +25,7 @@ class ModalManager{
         min-width: 60%
         mid-height: 15%; 
         border-radius:15px; 
+        z-index: 1000;
         `
         return modalContentBox
     }
@@ -70,7 +71,7 @@ class ModalManager{
         modal.style = ` 
         display: none; 
         position: fixed; 
-        z-index: 32;
+        z-index: 1000;
         left: 0;
         top: 0;
         width: 100%; 
