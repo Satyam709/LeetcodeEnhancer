@@ -2,3 +2,7 @@ dist/
 node_modules/
 dist/main.js
 *.txt
+production/
+webpack.prod.config.js
+production.crx
+production.pem
