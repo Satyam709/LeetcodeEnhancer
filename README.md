@@ -1,6 +1,6 @@
 # Leetcode Enhancer
 
-[![Logo](https://github.com/Satyam709/LeetcodeEnhancer/blob/master/assets/logo.png?raw=true)](https://github.com/Satyam709/LeetcodeEnhancer)
+[![Logo](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/assets/logo.png?raw=true)](https://github.com/Satyam709/LeetcodeEnhancer)
 
 Enhance your Leetcode experience with additional features and tools to make problem-solving more efficient and insightful!
 
@@ -27,11 +27,11 @@ Unlock Leetcode premium features without the need for a subscription or login.
 
 Here are some screenshots showing the features of Leetcode Enhancer in action:
 
-![Screenshot 1](https://github.com/Satyam709/LeetcodeEnhancer/blob/master/screenshots/Capure.PNG?raw=true)
+![Screenshot 1](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/screenshots/Capure.PNG?raw=true)
 
-![Screenshot 2](https://github.com/Satyam709/LeetcodeEnhancer/blob/master/screenshots/Capure2.PNG?raw=true)
+![Screenshot 2](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/screenshots/Capure2.PNG?raw=true)
 
-![Screenshot 3](https://github.com/Satyam709/LeetcodeEnhancer/blob/master/screenshots/Capure3.PNG?raw=true)
+![Screenshot 3](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/screenshots/Capure3.PNG?raw=true)
 
 ---
 
@@ -68,9 +68,4 @@ If you need any help, have questions, or want to report an issue, please feel fr
 - Contact via email at `support@leetcodeenhancer.com` (example).
 
 ---
-
-## Acknowledgements
-
-- Thanks to the Leetcode community for providing a platform for learning and improving coding skills.
-- Special thanks to contributors who have made this project possible!
 
