@@ -2,7 +2,7 @@
     "name": "Leetcode Premium Unlocker",
     "version": "1.0.1",
     "description": "Inject crowdsourced Leetcode premium data",
-    "permissions": ["storage", "unlimitedStorage"],
+    "permissions": ["storage", "unlimitedStorage","activeTab"],
     "action": {
       "default_popup": "dist/index.html"
     },
