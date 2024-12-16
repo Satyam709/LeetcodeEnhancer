@@ -5,13 +5,6 @@ class ProblemTagsElementModifier {
     this.tagButtonListener = [];
   }
 
-  getTabMenu() {
-    let tabMenu = document.getElementsByClassName("gap-8")[0];
-    if (tabMenu == undefined)
-      tabMenu = document.getElementsByClassName("gap-6")[0];
-    return tabMenu;
-  }
-
   isCompaniesButtonGot() {
     let companiesButton = this.getCompaniesButton();
     return companiesButton != undefined;
