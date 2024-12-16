@@ -37,7 +37,7 @@ class GoogleSheetsProblemTableDataFetcher {
     let url = GoogleSheetsAPIManager.getUrl(range);
     let response = await fetch(url);
     let data = await response.json();
-    
+
     let parsedData = this.parseProblemFrequencyData(data["values"]);
     return parsedData;
   }
@@ -216,6 +216,7 @@ class GoogleSheetsProblemTagsDataFetcher {
     if (!(url in this.map)) {
       return new Promise((resolve, reject) => resolve(new ProblemInfoList()));
     }
+
     let startRow = this.map[url][0];
     let endRow = this.map[url][1];
     let range = `ProblemCompaniesTags!A${startRow}:C${endRow}`;
@@ -269,6 +270,44 @@ class GoogleSheetsEditorialDataFetcher {
     let values = data["values"];
     if (values == undefined) return "<h1>No data</h1>";
     return values[0][0];
+  }
+
+  static async fetchEditorialDataByUrl(targetUrl) {
+    const sheetName = "Problem";
+    const urlColumn = "F"; // Column containing URLs
+    const editorialColumn = "L"; // Column containing editorials
+
+    // Define the range to fetch URLs and editorials
+    let range = `${sheetName}!${urlColumn}1:${urlColumn}`; // Fetch all rows in column F
+
+    // Fetch all the URLs in column F
+    let url = GoogleSheetsAPIManager.getUrl(range);
+    let response = await fetch(url);
+    let data = await response.json();
+
+    let values = data["values"]; // Array of rows in column F
+    if (!values) return "<h1>No data</h1>";
+
+    // Loop through the rows to find the matching URL
+    for (let row = 0; row < values.length; row++) {
+      if (values[row][0] === targetUrl) {
+        // If URL matches, fetch the editorial in the same row (column L)
+        let editorialRange = `${sheetName}!${editorialColumn}${row + 1}`;
+        let editorialUrl = GoogleSheetsAPIManager.getUrl(editorialRange);
+        let editorialResponse = await fetch(editorialUrl);
+        let editorialData = await editorialResponse.json();
+
+        let editorialValues = editorialData["values"];
+        console.log(editorialValues[0][0]);
+        
+        return editorialValues
+          ? editorialValues[0][0]
+          : "<h1>No editorial found</h1>";
+      }
+    }
+
+    // If no matching URL is found
+    return "<h1>URL not found</h1>";
   }
 }
 
