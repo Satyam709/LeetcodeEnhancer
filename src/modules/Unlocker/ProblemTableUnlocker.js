@@ -133,8 +133,11 @@ class ProblemTableUnlocker {
 
     //clone progressbar to remove event listeners
     let tmp = progressBar.cloneNode(true);
-    progressBar.parentNode.replaceChild(tmp, progressBar);
+    // href url of a tag inside "tmp"
+    let aTag = tmp.getElementsByTagName("a")[0];
+    if (!aTag) aTag.href = "javascript:void(0)";
 
+    progressBar.parentNode.replaceChild(tmp, progressBar);
   };
 
   static removeProgressbarUnlockButton(row) {

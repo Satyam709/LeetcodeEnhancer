@@ -6,4 +6,4 @@ production/
 webpack.prod.config.js
 production.crx
 production.pem
-releases/
+release*/

@@ -27,11 +27,13 @@ Unlock Leetcode premium features without the need for a subscription or login.
 
 Here are some screenshots showing the features of Leetcode Enhancer in action:
 
-![Screenshot 1](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/screenshots/Capure.PNG?raw=true)
+![Screenshot 1](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/screenshots/Capture4.PNG?raw=true)
 
-![Screenshot 2](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/screenshots/Capure2.PNG?raw=true)
+![Screenshot 2](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/screenshots/Capure.PNG?raw=true)
 
-![Screenshot 3](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/screenshots/Capure3.PNG?raw=true)
+![Screenshot 3](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/screenshots/Capure2.PNG?raw=true)
+
+![Screenshot 4](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/screenshots/Capure3.PNG?raw=true)
 
 ---
 
