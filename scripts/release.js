@@ -69,7 +69,7 @@ async function main() {
     ];
 
     await createZip(
-      `leetcode-premium-unlocker-chrome-v${version}.zip`,
+      `leetcode-enhancer-chrome-v${version}.zip`,
       chromeFiles
     );
 
@@ -80,7 +80,7 @@ async function main() {
     ];
 
     await createZip(
-      `leetcode-premium-unlocker-firefox-v${version}.zip`,
+      `leetcode-enhancer-firefox-v${version}.zip`,
       firefoxFiles
     );
 
