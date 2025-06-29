@@ -5,10 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha tests/* --require @babel/register --recursive --timeout 300000",
-    "build": "webpack",
+    "build": "webpack && cp src/style.css dist/style.css && cp src/index.html dist/index.html",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "format:src": "prettier --write src/"
+    "format:src": "prettier --write src/",
+    "release": "node scripts/release.js"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,7 @@
     "@babel/core": "^7.21.8",
     "@babel/preset-env": "^7.21.5",
     "@babel/register": "^7.21.0",
+    "archiver": "^7.0.1",
     "mocha": "^10.2.0",
     "prettier": "^3.6.2",
     "selenium-webdriver": "^4.10.0",
