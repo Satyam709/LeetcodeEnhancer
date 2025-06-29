@@ -119,9 +119,11 @@ class ProblemTableElementModifier {
     if (childNode == null) {
       return "";
     }
-    return childNode.querySelector(
-      "div.text-body.text-sd-foreground.max-w-full.font-medium > div.ellipsis.line-clamp-1"
-    )?.textContent || "";
+    return (
+      childNode.querySelector(
+        "div.text-body.text-sd-foreground.max-w-full.font-medium > div.ellipsis.line-clamp-1"
+      )?.textContent || ""
+    );
   }
 
   getIsPremium(childNode) {
@@ -140,21 +142,20 @@ class ProblemTableElementModifier {
       }, 100);
       return;
     }
-    
+
     this.disconnectObserverToProblemTable();
     let problemsets = this.getProblemSets();
 
     console.log("problemsets", problemsets);
-    
 
-    problemsets.forEach(problemset => {
+    problemsets.forEach((problemset) => {
       let problemName = this.getProblemName(problemset);
       let id = this.getProblemId(problemName);
       console.log(problemName, id);
       problemset.setAttribute("problem-id", String(id));
       let isPremium = this.getIsPremium(problemset);
       problemset.setAttribute("is-premium", isPremium);
-      this.elementModifier.forEach(modifier => {
+      this.elementModifier.forEach((modifier) => {
         modifier(problemset);
       });
     });

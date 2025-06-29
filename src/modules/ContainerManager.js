@@ -1,21 +1,20 @@
-import { CSSStyler } from "./Objects"
+import { CSSStyler } from "./Objects";
 
-
-class ModalManager{ 
-    constructor() { 
-        if(ModalManager._instance) { 
-            throw new Error("Modal Manager Have been instantiated")
-        }
-        ModalManager._instance = this
-        this.modal = this.createModal()
-        this.modalContentBox = this.createModalContentBox()
-        this.appendToModal(this.modalContentBox)
-        this.appendModal(document.body)
+class ModalManager {
+  constructor() {
+    if (ModalManager._instance) {
+      throw new Error("Modal Manager Have been instantiated");
     }
+    ModalManager._instance = this;
+    this.modal = this.createModal();
+    this.modalContentBox = this.createModalContentBox();
+    this.appendToModal(this.modalContentBox);
+    this.appendModal(document.body);
+  }
 
-    createModalContentBox() {
-        let modalContentBox = document.createElement('div')
-        modalContentBox.style = `
+  createModalContentBox() {
+    let modalContentBox = document.createElement("div");
+    modalContentBox.style = `
         background-color: ${CSSStyler.getContainerBackgroundColor()};
         margin-top:5%; 
         margin-left: auto;
@@ -26,49 +25,49 @@ class ModalManager{
         mid-height: 15%; 
         border-radius:15px; 
         z-index: 1000;
-        `
-        return modalContentBox
-    }
+        `;
+    return modalContentBox;
+  }
 
-    getModalContentBox() { 
-        return this.modalContentBox
-    }
+  getModalContentBox() {
+    return this.modalContentBox;
+  }
 
-    appendModal(targetParent) {
-        targetParent.appendChild(this.modal)
-    }
+  appendModal(targetParent) {
+    targetParent.appendChild(this.modal);
+  }
 
-    appendToModal(targetElement) { 
-        this.modal.appendChild(targetElement)
-    } 
-    
-    appendToContainer(targetElement) { 
-        this.modalContentBox.appendChild(targetElement)
-    }
+  appendToModal(targetElement) {
+    this.modal.appendChild(targetElement);
+  }
 
-    showLoadingIcon() { 
-        let loadingDiv = document.createElement('div')
-        loadingDiv.classList.add('loading-logo')
-        this.modalContentBox.appendChild(loadingDiv)
-    }
+  appendToContainer(targetElement) {
+    this.modalContentBox.appendChild(targetElement);
+  }
 
-    createCloseButton() { 
-        let closeButton = document.createElement('span')
-        closeButton.style = ` 
+  showLoadingIcon() {
+    let loadingDiv = document.createElement("div");
+    loadingDiv.classList.add("loading-logo");
+    this.modalContentBox.appendChild(loadingDiv);
+  }
+
+  createCloseButton() {
+    let closeButton = document.createElement("span");
+    closeButton.style = ` 
         float: right;
         font-size: 28px;
         font-weight: bold;
         cursor: pointer;
-        `
+        `;
 
-        closeButton.innerText = "x"
-        closeButton.addEventListener('click', resetModal)
-        return closeButton
-    }
+    closeButton.innerText = "x";
+    closeButton.addEventListener("click", resetModal);
+    return closeButton;
+  }
 
-    createModal() { 
-        let modal = document.createElement('div')
-        modal.style = ` 
+  createModal() {
+    let modal = document.createElement("div");
+    modal.style = ` 
         display: none; 
         position: fixed; 
         z-index: 1000;
@@ -77,38 +76,38 @@ class ModalManager{
         width: 100%; 
         height: 100%; 
         overflow: auto; 
-        `
-        window.addEventListener('click', this.onModalClicked)
-        modal.id = "CompanyModal"
-        return modal
-    }
+        `;
+    window.addEventListener("click", this.onModalClicked);
+    modal.id = "CompanyModal";
+    return modal;
+  }
 
-    openModal() { 
-        this.modal.style.display = ""
-    }
+  openModal() {
+    this.modal.style.display = "";
+  }
 
-    closeModal() { 
-        this.modal.style.display = "none"
-    }
+  closeModal() {
+    this.modal.style.display = "none";
+  }
 
-    clearModalContent() { 
-        while(this.modalContentBox.firstChild != undefined) { 
-            this.modalContentBox.firstChild.remove()
-        }
+  clearModalContent() {
+    while (this.modalContentBox.firstChild != undefined) {
+      this.modalContentBox.firstChild.remove();
     }
+  }
 
-    onModalClicked = (event) =>  { 
-        if (event.target == this.modal) {
-            this.resetModal()
-        }
-    } 
-
-    resetModal = () => {  
-        this.closeModal()
-        this.clearModalContent()
+  onModalClicked = (event) => {
+    if (event.target == this.modal) {
+      this.resetModal();
     }
+  };
+
+  resetModal = () => {
+    this.closeModal();
+    this.clearModalContent();
+  };
 }
 
-let modalManager = new ModalManager()
+let modalManager = new ModalManager();
 
-export {modalManager}
+export { modalManager };

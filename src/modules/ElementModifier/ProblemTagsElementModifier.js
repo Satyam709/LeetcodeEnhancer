@@ -19,10 +19,10 @@ class ProblemTagsElementModifier {
       }
       this.modifyCompaniesTagButton();
     } catch (e) {
-        console.log(e," error occured\n retrying in 100ms");
-        window.setTimeout(() => {
-            this.modifyElement();
-        }, 100);
+      console.log(e, " error occured\n retrying in 100ms");
+      window.setTimeout(() => {
+        this.modifyElement();
+      }, 100);
     }
   }
 

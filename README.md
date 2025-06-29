@@ -72,28 +72,29 @@ If you need any help, have questions, or want to report an issue, please feel fr
 
 ## Installation
 
-1. **Download the ZIP file**  
+1. **Download the ZIP file**
    - Go to the [Releases](https://github.com/Satyam709/LeetcodeEnhancer/releases)
- page of this repository.
+     page of this repository.
    - Download the latest release's `.zip` file.
 
-2. **Extract the ZIP file**  
+2. **Extract the ZIP file**
    - Extract the contents of the `.zip` file to a folder on your computer.
 
-3. **Load the Extension into Chrome**  
+3. **Load the Extension into Chrome**
    - Open Google Chrome.
    - Navigate to `chrome://extensions/`.
    - Enable **Developer Mode** (toggle switch in the top-right corner).
    - Click **Load unpacked**.
    - Select the folder where you extracted the extension.
 
-4. **Use the Extension**  
-   - The extension will now be loaded in Chrome and ready to use.  
+4. **Use the Extension**
+   - The extension will now be loaded in Chrome and ready to use.
    - You can pin the extension to the toolbar for quick access.
 
 ---
 
 ## Notes
+
 - If you encounter theme coloring issue just set theme in leetcode to manual rather than system.
 
 ---
@@ -101,5 +102,5 @@ If you need any help, have questions, or want to report an issue, please feel fr
 ## Changelog
 
 ### v1.0.0
-- Initial release.
 
+- Initial release.

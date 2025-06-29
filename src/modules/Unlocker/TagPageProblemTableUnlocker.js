@@ -1,12 +1,7 @@
+class TagPageProbleTableUnlocker {
+  constructor() {}
 
-class TagPageProbleTableUnlocker{ 
-    constructor() { 
-    }
-    
-
-    unlock() { 
-    }
+  unlock() {}
 }
 
-
-export {TagPageProbleTableUnlocker}
+export { TagPageProbleTableUnlocker };
