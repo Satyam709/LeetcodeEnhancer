@@ -1,11 +1,3 @@
-class TagPageProblemTableElementModifier { 
+class TagPageProblemTableElementModifier {}
 
-
-
-
-
-
-
-}
-
-export {TagPageProblemTableElementModifier}
+export { TagPageProblemTableElementModifier };

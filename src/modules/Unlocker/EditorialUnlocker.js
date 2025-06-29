@@ -14,8 +14,7 @@ class EditorialUnlocker {
   async unlock() {
     const name = document.URL.split("/")[4];
     const out = await this.elementModifier.isEditorialLockedRequest(name);
-    if (!out)
-      return;
+    if (!out) return;
     this.elementModifier.injectFunctionToTargetElement(
       this.onEditorialTabClicked
     );
@@ -34,7 +33,7 @@ class EditorialUnlocker {
         break;
       }
     }
-    let problemUrl = url.substring(0, index+1);
+    let problemUrl = url.substring(0, index + 1);
 
     if (problemUrl == undefined) return;
     this.containerManager.clearModalContent();

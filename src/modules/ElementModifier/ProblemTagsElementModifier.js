@@ -6,26 +6,23 @@ class ProblemTagsElementModifier {
   }
 
   isCompaniesButtonGot() {
-    let companiesButton = this.getCompaniesButton();
-    return companiesButton != undefined;
+    return this.getCompaniesButton();
   }
 
   modifyElement() {
     try {
-      let isActive = this.isCompaniesButtonGot();
-      if (!isActive) {
+      if (!this.isCompaniesButtonGot()) {
         window.setTimeout(() => {
           this.modifyElement();
         }, 100);
         return;
       }
-      let path = this.getDataPath();
       this.modifyCompaniesTagButton();
     } catch (e) {
-        console.log(e," error occured\n retrying in 100ms");
-        window.setTimeout(() => {
-            this.modifyElement();
-        }, 100);
+      console.log(e, " error occured\n retrying in 100ms");
+      window.setTimeout(() => {
+        this.modifyElement();
+      }, 100);
     }
   }
 
@@ -37,6 +34,7 @@ class ProblemTagsElementModifier {
   getDataPath() {
     let parent = this.getDescrptionTabParent();
     // fix path
+    if (parent == null) return null;
     let path = parent.getAttribute("data-layout-path");
     path = path.replace("b", "");
     return path;
@@ -44,52 +42,56 @@ class ProblemTagsElementModifier {
 
   getDescrptionTabParent() {
     let descriptionTab = this.getDescrptionTab();
-    let parent = descriptionTab.parentNode.parentNode;
+    if (descriptionTab == null) return null;
+    let parent = descriptionTab.parentNode?.parentNode;
     return parent;
   }
 
   getDescrptionTabContent() {
     let path = this.getDataPath();
+    if (path == null) return null;
     let content = document.querySelector(`div[data-layout-path="${path}"]`);
     return content;
   }
 
   getCompaniesButton() {
     let content = this.getDescrptionTabContent();
+    if (content == null) return null;
     let companiesButton = content.querySelectorAll(
       "div.flex.gap-1 div.py-1"
-    )[2];
+    )?.[2];
     return companiesButton;
   }
 
   modifyCompaniesTagButton() {
     let tagButton = this.getCompaniesButton();
-    let lockicon = tagButton.getElementsByTagName("svg")[0];
-    if (lockicon == undefined) return;
-    let tagDiv = lockicon.parentElement;
-    lockicon.remove();
-    let newNode = tagDiv.cloneNode(true);
-    tagDiv.parentElement.replaceChild(newNode, tagDiv);
+    let newNode = tagButton.cloneNode(true);
+    tagButton.parentElement.replaceChild(newNode, tagButton);
+    newNode.childNodes[0]?.remove();
     newNode.style.backgroundColor = CSSStyler.COLOR_ACCENT;
     newNode.style.color = "black";
+    newNode.childNodes[0].style.color = "black";
 
     let content = this.getDescrptionTabContent();
-    let a = content.querySelectorAll(
+
+    let topParent = content.querySelectorAll(
       '.mt-6.flex.flex-col.gap-3 div[class="flex flex-col"]'
     )[1];
 
+    // clone topParent
+    let topParentClone = topParent.cloneNode(true);
+
+    topParent.parentElement.replaceChild(topParentClone, topParent);
+
+    let a = topParentClone?.childNodes[0]?.childNodes[0]?.childNodes[0];
+
     // make svg invisible
-    let svg = a.querySelectorAll("svg")[0];
-    svg.style.visibility = "hidden";
-
-    svg.parentElement.style.color = CSSStyler.COLOR_ACCENT;
-
-    let newNode2 = a.cloneNode(true);
-    a.parentElement.replaceChild(newNode2, a);
+    a.childNodes[0].style.visibility = "hidden";
+    a.childNodes[1].style.color = CSSStyler.COLOR_ACCENT;
 
     for (let i = 0; i <= this.tagButtonListener.length - 1; i++) {
       newNode.addEventListener("click", this.tagButtonListener[i]);
-      newNode2.addEventListener("click", this.tagButtonListener[i]);
+      a.addEventListener("click", this.tagButtonListener[i]);
     }
   }
 

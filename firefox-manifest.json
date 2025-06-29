@@ -1,22 +1,25 @@
 {
-    "name": "Leetcode Premium Unlocker",
-    "version": "0.8.7",
-    "description": "Inject crowdsourced Leetcode premium data",
-    "permissions": ["https://sheets.googleapis.com/v4/spreadsheets*", "storage", "unlimitedStorage"],
-    "browser_action": {
-      "default_popup": "dist/index.html"
-    },
-    "manifest_version": 2, 
-    "content_scripts": [
-        {
-          "css": ["dist/style.css"], 
-          "js": ["/dist/main.js"],
-          "matches": [
-            "https://leetcode.com/*"
-          ]
-        }
-      ], 
-    "icons": {
-      "96": "/assets/logo.png"
+  "name": "Leetcode Premium Unlocker",
+  "version": "2.0.0",
+  "description": "Inject crowdsourced Leetcode premium data",
+  "permissions": [
+    "https://sheets.googleapis.com/v4/spreadsheets*",
+    "storage",
+    "unlimitedStorage",
+    "activeTab"
+  ],
+  "browser_action": {
+    "default_popup": "dist/index.html"
+  },
+  "manifest_version": 2,
+  "content_scripts": [
+    {
+      "css": ["dist/style.css"],
+      "js": ["/dist/main.js"],
+      "matches": ["https://leetcode.com/*"]
     }
+  ],
+  "icons": {
+    "96": "/assets/logo.png"
+  }
 }
