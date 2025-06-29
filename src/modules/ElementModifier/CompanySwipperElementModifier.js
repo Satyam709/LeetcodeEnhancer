@@ -17,7 +17,7 @@ class CompanySwipperElementModifier {
     }
 
     isSwiperLoading() { 
-        return document.getElementsByClassName("swiper-autoheight")[1] == undefined
+        return document.getElementsByClassName("swiper-autoheight")[0] == undefined
     }
     
     modifyActiveElement() { 
@@ -26,7 +26,7 @@ class CompanySwipperElementModifier {
             return 
         }
         
-        let parentSwipper = document.getElementsByClassName("swiper-autoheight")[2]
+        let parentSwipper = document.getElementsByClassName("swiper-autoheight")[0]
         let swipers = parentSwipper.getElementsByClassName('swiper-slide-active')
         let swiper = swipers[swipers.length-1]
         let links = swiper.getElementsByTagName('a')
