@@ -6,7 +6,7 @@ import {
 import { GoogleSheetsProblemTableDataFetcher } from "../DataFetcher/GoogleSheetsDataFetcher";
 import { CSSStyler } from "../Objects";
 import { modalManager } from "../ContainerManager";
-import * as DOMPurify from "dompurify";
+import DOMPurify from "dompurify";
 import { LocalStorageFrequencyDataFetcher } from "../DataFetcher/LocalStorageDataFetcher";
 import { analyticsManager } from "../AnalyticsManager";
 
@@ -23,9 +23,6 @@ class ProblemTableUnlocker {
 
   onFetchSuccess() {
     this.elementModifier.injectFunctionToTargetElement(
-      ProblemTableUnlocker.removeProgressbarUnlockButton
-    );
-    this.elementModifier.injectFunctionToTargetElement(
       this.insertInnerProgressbar
     );
     this.elementModifier.injectFunctionToTargetElement(
@@ -38,17 +35,21 @@ class ProblemTableUnlocker {
     let isPremium = row.getAttribute("is-premium") == "true"; // to modify
     if (isPremium) {
       this.removePremiumIcons(row);
+      // remove all event listeners by cloning the row
+      let clonedRow = row.cloneNode(true);
+      row.parentNode.replaceChild(clonedRow, row);
+      row = clonedRow;
       let problemId = row.getAttribute("problem-id");
-      let problemUrl = row.getElementsByTagName("a")[0];
-      problemUrl.href = "javascript:void(0)";
-      problemUrl.style.color = CSSStyler.COLOR_ACCENT;
-      problemUrl.addEventListener("click", () => {
+      row.setAttribute("href", "javascript:void(0)");
+      row.style.color = CSSStyler.COLOR_ACCENT;
+      row.addEventListener("click", () => {
         this.onPremiumProblemClicked(problemId);
       });
     }
   };
 
   unlock() {
+    console.log("ProblemTableUnlocker.unlock");
     this.dataFetcher
       .fetchData()
       .then((data) => {
@@ -96,31 +97,50 @@ class ProblemTableUnlocker {
   }
 
   removePremiumIcons(row) {
-    let cells = row.querySelectorAll('[role="cell"]');
-    let lockLogo = cells[0].getElementsByTagName("svg")[0];
-    let premiumLogo = cells[1].getElementsByTagName("svg")[0];
+    let lockLogo = this.getPremiumIcon(row);
     if (lockLogo != undefined) lockLogo.style.opacity = 0;
-    if (premiumLogo != undefined) premiumLogo.style.opacity = 0;
+  }
+
+  getPremiumIcon(row) {
+    let selector = `[data-icon="lock"]`;
+    return row.querySelector(selector);
   }
 
   insertInnerProgressbar = (row) => {
-    let cells = row.querySelectorAll('[role="cell"]');
-    let progressBar = cells[cells.length - 1];
+    let parentDiv = row.querySelector(
+      `div[class*='flex h-[44px] w-full items-center space-x-3 px-4']`
+    );
+
+    if (parentDiv == null) {
+      console.log("parentDiv is null");
+      return;
+    }
+
+    if (parentDiv.getAttribute("progress-bar-added") == "true") return;
+
+    parentDiv.childNodes[2]?.remove();
+    parentDiv.childNodes[3]?.remove();
 
     let id = row.getAttribute("problem-id");
+
     let width = this.problemData[id];
+
     if (width == undefined) width = 100;
     width *= 100;
-    let innerProgressbarClassName = "inner-progressbar";
-    let innerProgressbar = progressBar.getElementsByClassName(
-      innerProgressbarClassName
-    );
-    let outerProgressbar =
-      progressBar.getElementsByClassName("rounded-l-lg")[0];
-    if (innerProgressbar.length > 0) {
-      innerProgressbar[0].remove();
-    }
+
+    let outerProgressbar = document.createElement("div");
+    outerProgressbar.classList.add("rounded-l-lg");
+    outerProgressbar.style = `
+      width: 90px;
+      height: 10px;
+      border-bottom-right-radius: 0.5rem;
+      border-top-right-radius: 0.5rem;
+      border-bottom-left-radius: 0.5rem;
+      border-top-left-radius: 0.5rem;
+    `;
+
     let progress;
+
     if (id in this.problemData) {
       progress = generateInnerProgressbar(width);
       outerProgressbar.setAttribute("title", `${Math.round(width)}%`);
@@ -128,35 +148,12 @@ class ProblemTableUnlocker {
       progress = generateRedInnerProgressBar(width);
       outerProgressbar.setAttribute("title", `No Data`);
     }
-    progress.classList.add(innerProgressbarClassName);
     outerProgressbar.appendChild(progress);
 
-    //clone progressbar to remove event listeners
-    let tmp = progressBar.cloneNode(true);
-    // href url of a tag inside "tmp"
-    let aTag = tmp.getElementsByTagName("a")[0];
-    if (!aTag) aTag.href = "javascript:void(0)";
+    parentDiv.appendChild(outerProgressbar);
 
-    progressBar.parentNode.replaceChild(tmp, progressBar);
+    parentDiv.setAttribute("progress-bar-added", "true");
   };
-
-  static removeProgressbarUnlockButton(row) {
-    let cells = row.querySelectorAll('[role="cell"]');
-    let progressbar = cells[cells.length - 1];
-
-    let lockLogo = progressbar.getElementsByTagName("svg")[0];
-    let leftBar = progressbar.getElementsByClassName("rounded-r-lg")[0];
-    let rightBar = progressbar.getElementsByClassName("rounded-l-lg")[0];
-    if (lockLogo != undefined) lockLogo.remove();
-    if (leftBar != undefined) leftBar.remove();
-    if (rightBar != undefined) {
-      rightBar.style = `
-            border-bottom-right-radius: 0.5rem;
-            overflow: hidden; 
-            border-top-right-radius: 0.5rem
-            `;
-    }
-  }
 }
 
 export { ProblemTableUnlocker };

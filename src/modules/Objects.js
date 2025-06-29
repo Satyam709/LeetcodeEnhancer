@@ -98,25 +98,27 @@ class ProblemArray extends Array {
 }
 
 class CSSStyler {
-  static isDarkMode() {
-    return localStorage.getItem("lc-theme") == "dark";
-  }
-
   static getContainerBackgroundColor() {
-    switch (CSSStyler.isDarkMode()) {
-      case true:
+    let theme = localStorage.getItem("lc-theme");
+    switch (theme) {
+      case "dark":
         return "#151515";
-      case false:
+      case "light":
         return "#f3f3f3";
+      default:
+        return "#151515";
     }
   }
 
   static getComplementaryColor() {
-    switch (CSSStyler.isDarkMode()) {
-      case true:
+    let theme = localStorage.getItem("lc-theme");
+    switch (theme) {
+      case "dark":
         return "#282828";
-      case false:
+      case "light":
         return "#dcdcdc";
+      default:
+        return "#282828";
     }
   }
 
