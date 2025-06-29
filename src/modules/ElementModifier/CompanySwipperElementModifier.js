@@ -58,7 +58,7 @@ class CompanySwipperElementModifier {
             window.setTimeout(() => {this.addObserverToCompaniesSection.bind(this)()} ,100);
             return 
         }
-        let parentSwipper = document.getElementsByClassName("swiper-autoheight")[2]
+        let parentSwipper = document.getElementsByClassName("swiper-autoheight")[0]
         var swipper =  parentSwipper.parentNode.parentNode
         const observer = new MutationObserver(() => {
             this.modifyActiveElement()
