@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { buildManifest, type ManifestBase } from "../../../scripts/manifest";
 
@@ -81,5 +81,27 @@ describe("buildManifest", () => {
       { resources: ["data/*"], matches: ["https://leetcode.com/*"] },
     ]);
     expect(manifest).not.toHaveProperty("permissions");
+  });
+
+  it("every icon referenced in manifest.base.json exists on disk as a PNG", async () => {
+    const realBase = JSON.parse(
+      await readFile("manifest.base.json", "utf8")
+    ) as ManifestBase;
+    const icons = realBase.icons ?? {};
+    expect(Object.keys(icons).sort((a, b) => Number(a) - Number(b))).toEqual([
+      "16",
+      "32",
+      "48",
+      "96",
+      "128",
+    ]);
+    const pngSignature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+    for (const relPath of Object.values(icons)) {
+      const bytes = await readFile(relPath);
+      expect(
+        [...bytes.subarray(0, 8)],
+        `${relPath} is not a PNG`
+      ).toEqual(pngSignature);
+    }
   });
 });

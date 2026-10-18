@@ -60,9 +60,9 @@
 **Interfaces:**
 - Produces: `icons` map in the manifest; generated PNGs committed.
 
-- [ ] **Step 1:** Add `sharp` as a devDependency; write `tools/icons.mjs` that resizes `assets/logo.png` (square fit) to the five sizes into `assets/icons/`.
-- [ ] **Step 2:** Run it; commit PNGs + script.
-- [ ] **Step 3:** Add a test asserting every icon referenced in `manifest.base.json` exists on disk. Commit `chore: extension icons 16–128`.
+- [x] **Step 1:** Add `sharp` as a devDependency; write `tools/icons.mjs` that resizes `assets/logo.png` (square fit) to the five sizes into `assets/icons/`.
+- [x] **Step 2:** Run it; commit PNGs + script.
+- [x] **Step 3:** Add a test asserting every icon referenced in `manifest.base.json` exists on disk. Commit `chore: extension icons 16–128`.
 
 ---
 

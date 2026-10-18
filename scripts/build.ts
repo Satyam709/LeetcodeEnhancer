@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import * as esbuild from "esbuild";
@@ -85,6 +85,13 @@ export async function build(opts: BuildOptions): Promise<void> {
   // Fresh copy — the data directory is replaced, never merged.
   await rm(path.join(outdir, "data"), { recursive: true, force: true });
   await cp(dataDir, path.join(outdir, "data"), { recursive: true });
+
+  // Every icon the manifest references, at its manifest-relative path.
+  for (const relPath of Object.values(base.icons ?? {})) {
+    const dest = path.join(outdir, relPath);
+    await mkdir(path.dirname(dest), { recursive: true });
+    await copyFile(path.join(root, relPath), dest);
+  }
 
   console.log(
     `built ${path.relative(root, outdir)}/ (${opts.browser}, v${pkg.version})`

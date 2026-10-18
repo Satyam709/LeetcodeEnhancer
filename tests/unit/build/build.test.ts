@@ -47,6 +47,13 @@ describe("build", () => {
       const pkg = JSON.parse(await readFile("package.json", "utf8"));
       expect(manifest.version).toBe(pkg.version);
       expect(manifest.manifest_version).toBe(3);
+
+      // Everything the manifest references must exist in the build.
+      for (const relPath of Object.values<string>(manifest.icons ?? {})) {
+        await expect(
+          access(path.join(outdir, relPath))
+        ).resolves.toBeUndefined();
+      }
     } finally {
       await rm(root, { recursive: true, force: true });
     }
