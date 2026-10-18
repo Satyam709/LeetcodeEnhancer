@@ -253,9 +253,9 @@ it("returns zeros for empty input", () => expect(normalizeScores([])).toEqual([]
 - Produces: `BUDGETS = { totalBytes: 4 * 1024 * 1024, indexBytes: 700 * 1024 }`; `validateArtifacts(artifacts: Artifacts, budgets = BUDGETS): { ok: boolean; errors: string[] }` — checks: `schemaVersion === 1`; every slug matches `/^[a-z0-9-]+$/`; referential integrity (every problem slug in company shards exists in index; every company index entry has a shard; topic indices in range); sizes within budget.
 - Consumes: `Artifacts` (Task 6).
 
-- [ ] **Step 1: Write failing tests** — valid fixture passes; dangling problem slug fails; missing shard fails; oversize (inject tiny budgets) fails; bad slug (`"Two Sum"`) fails.
+- [x] **Step 1: Write failing tests** — valid fixture passes; dangling problem slug fails; missing shard fails; oversize (inject tiny budgets) fails; bad slug (`"Two Sum"`) fails.
 
-- [ ] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass** → commit `feat: artifact validation gate`.
+- [x] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass** → commit `feat: artifact validation gate`.
 
 ---
 
