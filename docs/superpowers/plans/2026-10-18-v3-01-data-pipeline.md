@@ -79,7 +79,7 @@ git commit -m "chore: stand up v3 toolchain (ts, vitest); retire v2 source"
 **Interfaces:**
 - Produces: `parseCsv(text: string): string[][]` — header row included; BOM stripped; values trimmed; short rows pass through as short arrays (validated downstream).
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```ts
 import { parseCsv } from "../../../tools/sync-data/csv";
@@ -101,15 +101,15 @@ it("passes short rows through as short arrays", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
   Run: `pnpm vitest run tests/unit/pipeline/csv.test.ts` → FAIL (module not found).
 
-- [ ] **Step 3: Implement `parseCsv`**
+- [x] **Step 3: Implement `parseCsv`**
 
   Thin wrapper over `csv-parse/sync` with `{ bom: true, trim: true, relax_column_count: true, skip_empty_lines: true }`.
 
-- [ ] **Step 4: Run tests to verify they pass** — then commit `feat: csv parsing for pipeline`.
+- [x] **Step 4: Run tests to verify they pass** — then commit `feat: csv parsing for pipeline`.
 
 ---
 
