@@ -81,15 +81,15 @@
   - `createViews(): View[]` — stub views (each `mount` logs `lce:<name> mounted` in debug and returns a teardown) with matchers: company `^/company/([^/]+)/?$`; problem `^/problems/([^/]+)(/.*)?$` (excluding `/problemset`); problemset `^/problemset/?$`; problem-list `^/problem-list/?.*`.
 - Consumes: nothing.
 
-- [ ] **Step 1: Write failing tests** (jsdom):
+- [x] **Step 1: Write failing tests** (jsdom):
   - registry matcher table (the Review Focus URL variants, plus `/company/` with no slug → no match, `/contest/...` → none).
   - teardown runs before next mount; `currentViewName()` tracks.
   - navigation to the same matched view name (href changes, view unchanged) does **not** remount.
   - route change mid-mount (mount promise resolves after next `check()`) → stale teardown never recorded as current.
   - `stop()` — after `stop()`, href changes trigger nothing.
-- [ ] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass.**
-- [ ] **Step 5:** Wire `src/content/index.ts`: boot guarded in try/catch, `createRouter({ views: createViews() }).start()`; debug logger helper `src/lib/debug.ts` (`debugLog(...)` gated by `localStorage["lce:debug"]`).
-- [ ] **Step 6: Commit** `feat: SPA router + view registry + boot`.
+- [x] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass.**
+- [x] **Step 5:** Wire `src/content/index.ts`: boot guarded in try/catch, `createRouter({ views: createViews() }).start()`; debug logger helper `src/lib/debug.ts` (`debugLog(...)` gated by `localStorage["lce:debug"]`).
+- [x] **Step 6: Commit** `feat: SPA router + view registry + boot`.
 
 ---
 
