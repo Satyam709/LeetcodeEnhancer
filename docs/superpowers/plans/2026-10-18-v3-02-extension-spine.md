@@ -102,8 +102,8 @@
 **Interfaces:**
 - Produces: `waitFor(selector: string, opts?: { root?: ParentNode; timeoutMs?: number }): Promise<Element>` — resolves immediately when present; otherwise one MutationObserver; rejects on timeout with `waitFor timeout: <selector>`; disconnects the observer in all paths.
 
-- [ ] **Step 1: Failing tests:** immediate resolve; resolves when the node is appended later; rejects after `timeoutMs: 50` when never appended; observer does not fire after resolve (append another matching node → no second resolution side effect, promise stays settled).
-- [ ] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass** → commit `feat: observer-based waitFor`.
+- [x] **Step 1: Failing tests:** immediate resolve; resolves when the node is appended later; rejects after `timeoutMs: 50` when never appended; observer does not fire after resolve (append another matching node → no second resolution side effect, promise stays settled).
+- [x] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass** → commit `feat: observer-based waitFor`.
 
 ---
 
