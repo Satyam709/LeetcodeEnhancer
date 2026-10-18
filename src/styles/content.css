@@ -1,0 +1,5 @@
+/* Injected UI styles — every selector must be scoped under .lce.
+   The full base (tokens, typography) lands in the styles task. */
+.lce-root {
+  color-scheme: inherit;
+}

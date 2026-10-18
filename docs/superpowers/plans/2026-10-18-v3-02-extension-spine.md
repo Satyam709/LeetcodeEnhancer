@@ -44,10 +44,10 @@
 - Consumes: `data/` from Plan 1.
 - Scripts: `build: tsx scripts/build.ts`, `build:firefox: tsx scripts/build.ts --browser=firefox`, `dev: tsx scripts/build.ts --watch`.
 
-- [ ] **Step 1: Write failing tests** — `buildManifest` output has `name: "LeetCode Enhancer"`, version injected, `manifest_version: 3`, `permissions` absent, `content_scripts[0]` matches `https://leetcode.com/*` with `js: ["content.js"]`, `css: ["content.css"]`; Firefox output includes `browser_specific_settings.gecko.id`; `build()` into a tmp `outdir` with a fake `data/` (containing `meta.json`) emits all four outputs; `build()` with `data/` absent rejects with a message containing `pnpm data:sync`.
-- [ ] **Step 2: Verify fail** (`pnpm vitest run tests/unit/build`)
-- [ ] **Step 3: Implement** `manifest.ts` (pure) and `build.ts` (esbuild API; `src/content/index.ts` stub that just logs; CSS file created minimally so bundling works — real content in Task 6).
-- [ ] **Step 4: Pass; also run** `pnpm build` → `dist/` contains `content.js`, `content.css`, `manifest.json`, `data/`. Commit `feat: esbuild pipeline + MV3 manifest generation`.
+- [x] **Step 1: Write failing tests** — `buildManifest` output has `name: "LeetCode Enhancer"`, version injected, `manifest_version: 3`, `permissions` absent, `content_scripts[0]` matches `https://leetcode.com/*` with `js: ["content.js"]`, `css: ["content.css"]`; Firefox output includes `browser_specific_settings.gecko.id`; `build()` into a tmp `outdir` with a fake `data/` (containing `meta.json`) emits all four outputs; `build()` with `data/` absent rejects with a message containing `pnpm data:sync`.
+- [x] **Step 2: Verify fail** (`pnpm vitest run tests/unit/build`)
+- [x] **Step 3: Implement** `manifest.ts` (pure) and `build.ts` (esbuild API; `src/content/index.ts` stub that just logs; CSS file created minimally so bundling works — real content in Task 6).
+- [x] **Step 4: Pass; also run** `pnpm build` → `dist/` contains `content.js`, `content.css`, `manifest.json`, `data/`. Commit `feat: esbuild pipeline + MV3 manifest generation`.
 
 ---
 
