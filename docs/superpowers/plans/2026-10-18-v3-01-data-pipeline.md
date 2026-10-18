@@ -269,25 +269,25 @@ it("returns zeros for empty input", () => expect(normalizeScores([])).toEqual([]
 - Produces: `REPO = "liquidslr/leetcode-company-wise-problems"`; `fetchSource(opts: { localPath?: string; tarballUrl?: string }): Promise<{ dir: string; commitSha: string; commitDate: string }>` — `localPath` passthrough (tests); otherwise download `codeload.github.com/<REPO>/tar.gz/refs/heads/main` to a temp dir, extract with `tar`, best-effort GitHub API lookup for the latest commit (failure → `commitSha: "unknown"`, `commitDate: today`).
 - CLI `pnpm data:sync [--local <dir>] [--out <dir=./data>]`: discover company folders (directories containing all five window files), parse → transform (counting rejects) → group per company/window with dedupe → `buildArtifacts` → `validateArtifacts` → atomic write → print summary (`companies`, `problems`, `entries`, `rejectedRows`, total bytes, `commitDate`); exit 1 with actionable message on validation failure.
 
-- [ ] **Step 1: Write failing tests** for `fetchSource({ localPath })` (fixture dir with a fake company folder returns `dir` + fallback meta), and for `discoverCompanies(dir)` (finds only folders with all five window files).
+- [x] **Step 1: Write failing tests** for `fetchSource({ localPath })` (fixture dir with a fake company folder returns `dir` + fallback meta), and for `discoverCompanies(dir)` (finds only folders with all five window files).
 
-- [ ] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass**.
+- [x] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass**.
 
-- [ ] **Step 5: End-to-end local run**
+- [x] **Step 5: End-to-end local run**
 
 ```bash
 pnpm data:sync --local tests/fixtures/mini-source
 ```
   Expected: summary prints; `data/meta.json`, `data/index.json`, `data/topics.json` exist; validation ok.
 
-- [ ] **Step 6: First real sync** (network)
+- [x] **Step 6: First real sync** (network)
 
 ```bash
 pnpm data:sync
 ```
   Expected: ≥ 400 companies, ≥ 3,000 problems; total ≤ 4 MB; summary shows a 2026 commit date; spot-check `data/companies/google.json` is sorted by frequency desc. If validation fails on budgets, intern/split before proceeding (spec §9.5).
 
-- [ ] **Step 7: Commit** `feat: sync-data CLI + source fetch`.
+- [x] **Step 7: Commit** `feat: sync-data CLI + source fetch`.
 
 ---
 
