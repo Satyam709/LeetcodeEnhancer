@@ -1,1 +1,10 @@
-{}
+{
+  "Apollo.io": "apolloio",
+  "Booking.com": "bookingcom",
+  "J.P. Morgan": "jpmorgan",
+  "Lowe's": "lowe",
+  "Media.net": "medianet",
+  "Otter.ai": "otterai",
+  "Pony.ai": "ponyai",
+  "X": "twitter"
+}

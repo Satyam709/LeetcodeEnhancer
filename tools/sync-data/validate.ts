@@ -32,10 +32,15 @@ export function validateArtifacts(
     );
   }
 
+  const seenCompanySlugs = new Set<string>();
   for (const company of index.companies) {
     if (!SLUG_RE.test(company.slug)) {
       errors.push(`invalid company slug: "${company.slug}"`);
     }
+    if (seenCompanySlugs.has(company.slug)) {
+      errors.push(`duplicate company slug: "${company.slug}"`);
+    }
+    seenCompanySlugs.add(company.slug);
     if (!companyShards.has(company.slug)) {
       errors.push(`missing company shard for index entry: "${company.slug}"`);
     }

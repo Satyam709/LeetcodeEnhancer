@@ -85,6 +85,14 @@ describe("validateArtifacts", () => {
     expect(r.errors.join("\n")).toContain("zzz");
   });
 
+  it("rejects duplicate company slugs", () => {
+    const a = base();
+    a.index.companies.push({ ...a.index.companies[0]! });
+    const r = validateArtifacts(a);
+    expect(r.ok).toBe(false);
+    expect(r.errors.join("\n")).toContain("duplicate company slug");
+  });
+
   it("rejects topic indices out of range", () => {
     const a = base();
     a.index.problems["two-sum"].topics = [7];

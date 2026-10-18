@@ -300,10 +300,10 @@ pnpm data:sync
 **Interfaces:**
 - Produces: `checkSlugs(slugs: string[], fetchImpl?: typeof fetch): Promise<{ slug: string; status: "ok" | "not-found" | "unknown" }[]>` — `HEAD https://leetcode.com/company/<slug>/`; non-2xx → `not-found`; network/Cloudflare errors → `unknown` (never throws).
 
-- [ ] **Step 1: Failing test** with a mock fetch (200, 404, network error) → three statuses.
-- [ ] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass.**
-- [ ] **Step 5: Run against the real dataset** (gentle, sequential, ~2 req/s) for the top ~60 companies by all-time count; add corrections to `company-aliases.json` (expected: `J.P. Morgan → jpmorgan`, `Apollo.io → apollo-io` or real slug, etc.); re-run `pnpm data:sync`.
-- [ ] **Step 6: Commit** `feat: slug checker + alias curation`.
+- [x] **Step 1: Failing test** with a mock fetch (200, 404, network error) → three statuses.
+- [x] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass.**
+- [x] **Step 5: Run against the real dataset** (gentle, sequential, ~2 req/s) for the top ~60 companies by all-time count; add corrections to `company-aliases.json` (expected: `J.P. Morgan → jpmorgan`, `Apollo.io → apollo-io` or real slug, etc.); re-run `pnpm data:sync`.
+- [x] **Step 6: Commit** `feat: slug checker + alias curation`.
 
 ---
 
