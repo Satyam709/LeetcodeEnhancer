@@ -122,7 +122,7 @@ it("passes short rows through as short arrays", () => {
 **Interfaces:**
 - Produces: `deriveCompanySlug(folderName: string): string`; `resolveCompanySlug(folderName: string, aliases: Record<string, string>): string` (alias lookup first, then derive).
 
-- [ ] **Step 1: Write failing tests** (pinned against real folder names in the repo)
+- [x] **Step 1: Write failing tests** (pinned against real folder names in the repo)
 
 ```ts
 it.each([
@@ -142,11 +142,11 @@ it("alias wins over derivation", () => {
 });
 ```
 
-- [ ] **Step 2: Verify they fail** (`pnpm vitest run tests/unit/pipeline/slugs.test.ts`)
+- [x] **Step 2: Verify they fail** (`pnpm vitest run tests/unit/pipeline/slugs.test.ts`)
 
-- [ ] **Step 3: Implement** — lowercase; replace any run of non-`[a-z0-9]` with `-`; collapse repeats; trim `-`. Ship `company-aliases.json` as the curated exception list (empty to start; populated in Task 9).
+- [x] **Step 3: Implement** — lowercase; replace any run of non-`[a-z0-9]` with `-`; collapse repeats; trim `-`. Ship `company-aliases.json` as the curated exception list (empty to start; populated in Task 9).
 
-- [ ] **Step 4: Pass + commit** `feat: company slug derivation with alias map`.
+- [x] **Step 4: Pass + commit** `feat: company slug derivation with alias map`.
 
 ---
 
