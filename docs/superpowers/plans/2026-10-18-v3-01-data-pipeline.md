@@ -159,7 +159,7 @@ it("alias wins over derivation", () => {
 **Interfaces:**
 - Produces: `type WindowKey = "d30" | "d3m" | "d6m" | "g6m" | "all"`; `WINDOW_FILES: readonly { file: string; key: WindowKey }[]` (the five file names above, recency order); `transformRow(row: string[]): TransformResult` where `TransformResult = { ok: true; value: ProblemRow } | { ok: false; reason: string }` and `ProblemRow = { slug: string; title: string; difficulty: "Easy" | "Medium" | "Hard"; acceptance: number; frequency: number; topics: string[] }`.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```ts
 const header = "Difficulty,Title,Frequency,Acceptance Rate,Link,Topics";
@@ -179,11 +179,11 @@ it.each([
 });
 ```
 
-- [ ] **Step 2: Verify they fail**
+- [x] **Step 2: Verify they fail**
 
-- [ ] **Step 3: Implement** — validate length ≥ 6; difficulty ∈ {EASY, MEDIUM, HARD} (display-normalized); slug from `/problems/([^/]+)/` on Link; acceptance = clamp(raw × 10000, 0, 100) rounded to 1 decimal; frequency numeric clamped 0–100 (1 decimal); topics split on `,`, trimmed, empties dropped.
+- [x] **Step 3: Implement** — validate length ≥ 6; difficulty ∈ {EASY, MEDIUM, HARD} (display-normalized); slug from `/problems/([^/]+)/` on Link; acceptance = clamp(raw × 10000, 0, 100) rounded to 1 decimal; frequency numeric clamped 0–100 (1 decimal); topics split on `,`, trimmed, empties dropped.
 
-- [ ] **Step 4: Pass + commit** `feat: pipeline row transform`.
+- [x] **Step 4: Pass + commit** `feat: pipeline row transform`.
 
 ---
 
