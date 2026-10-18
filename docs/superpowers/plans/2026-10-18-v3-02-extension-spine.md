@@ -166,9 +166,9 @@
 7. Toggle theme (light/dark/system) → no visual difference from native pages (stub views render nothing; verifies no CSS leak)
 8. Firefox: `about:debugging` → Load Temporary Add-on → same checks (raw `location` watcher works, no `chrome.*` API errors)
 
-- [ ] **Step 1:** Write the checklist; run it manually once end-to-end.
-- [ ] **Step 2:** Fix whatever the run exposes (expected candidates: mount ordering, debug logging noise); re-run.
-- [ ] **Step 3: Commit** `docs: spine manual QA checklist; first pass green`.
+- [x] **Step 1:** Write the checklist; run it manually once end-to-end.
+- [x] **Step 2:** Fix whatever the run exposes (expected candidates: mount ordering, debug logging noise); re-run.
+- [x] **Step 3: Commit** `docs: spine manual QA checklist; first pass green`.
 
 ---
 
