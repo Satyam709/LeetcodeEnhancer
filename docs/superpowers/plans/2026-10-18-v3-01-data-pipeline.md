@@ -235,11 +235,11 @@ it("returns zeros for empty input", () => expect(normalizeScores([])).toEqual([]
   - `writeArtifacts(dir: string, artifacts: Artifacts): Promise<void>` — writes all files (creating `companies/`, `problems/`), computes `files` hashes for `meta.json` last, writes atomically (temp dir + rename).
 - Consumes: `ProblemRow` (Task 4), frequency fns (Task 5).
 
-- [ ] **Step 1: Write failing tests** with a 3-company fixture (one company has an empty `d30` window; one problem appears twice in a window with different frequencies).
+- [x] **Step 1: Write failing tests** with a 3-company fixture (one company has an empty `d30` window; one problem appears twice in a window with different frequencies).
 
   Assert: empty window present as `[]`; duplicate deduped to max frequency; `windowMask` bit math (e.g. problem in `d3m` + `all` → 18); company shards sorted desc; topic interning (same topic string → same index); `meta.counts` exact; `writeArtifacts` into a tmp dir produces every file and `meta.files` hashes match recomputed sha256.
 
-- [ ] **Step 2: Verify they fail** → **Step 3: implement** → **Step 4: pass** → commit `feat: artifact builder (sharded, hashed, atomic)`.
+- [x] **Step 2: Verify they fail** → **Step 3: implement** → **Step 4: pass** → commit `feat: artifact builder (sharded, hashed, atomic)`.
 
 ---
 
