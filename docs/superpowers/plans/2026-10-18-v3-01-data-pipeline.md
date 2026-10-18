@@ -44,15 +44,15 @@
 **Interfaces:**
 - Produces: working `pnpm typecheck` / `pnpm test` / `pnpm data:sync` script slots every later task relies on.
 
-- [ ] **Step 1: Replace `package.json`**
+- [x] **Step 1: Replace `package.json`**
 
   `name: "leetcode-enhancer"`, `version: "3.0.0"`, `private: true`, `type: "module"`. Scripts: `typecheck: tsc --noEmit`, `test: vitest run`, `test:watch: vitest`, `data:sync: tsx tools/sync-data/index.ts`, `format: prettier --write .`. Dependencies: `csv-parse`, `tar`. DevDependencies: `typescript`, `tsx`, `vitest`, `jsdom`, `@types/node`, `prettier`.
 
-- [ ] **Step 2: Add `tsconfig.json` and `vitest.config.ts`**
+- [x] **Step 2: Add `tsconfig.json` and `vitest.config.ts`**
 
   tsconfig: `strict: true`, `target: ES2022`, `module: ESNext`, `moduleResolution: Bundler`, `types: ["node"]`, `include: ["src", "tools", "tests", "scripts"]`, `noEmit: true`. vitest: `environment: "jsdom"`, `passWithNoTests: true` (temporarily).
 
-- [ ] **Step 3: Delete v2 files, install, verify**
+- [x] **Step 3: Delete v2 files, install, verify**
 
 ```bash
 rm -rf src tests scripts webpack.config.js .babelrc manifest.json firefox-manifest.json
@@ -61,7 +61,7 @@ pnpm typecheck && pnpm test
 ```
   Expected: install succeeds; typecheck passes; vitest exits 0.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A

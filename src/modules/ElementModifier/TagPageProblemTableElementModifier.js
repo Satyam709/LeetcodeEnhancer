@@ -1,3 +1,0 @@
-class TagPageProblemTableElementModifier {}
-
-export { TagPageProblemTableElementModifier };

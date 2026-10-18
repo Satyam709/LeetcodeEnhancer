@@ -7,3 +7,8 @@ webpack.prod.config.js
 production.crx
 production.pem
 release*/
+
+data/
+releases/
+coverage/
+.superpowers/
