@@ -196,7 +196,7 @@ it.each([
 **Interfaces:**
 - Produces: `windowWeight(k: WindowKey): number`; `mostRecentWindow(keys: WindowKey[]): WindowKey` (recency order, first present); `rawScore(parts: { window: WindowKey; frequency: number }[]): number` (Σ weight × frequency/100); `normalizeScores(raws: number[]): number[]` (p99 = sorted[floor(0.99 × (n−1))]; empty or p99 = 0 → all zeros; clamp 0–100).
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```ts
 it("picks the most recent window", () =>
@@ -212,7 +212,7 @@ it("normalizes against p99 and clamps", () => {
 it("returns zeros for empty input", () => expect(normalizeScores([])).toEqual([]));
 ```
 
-- [ ] **Step 2: Verify they fail** → **Step 3: implement** → **Step 4: pass** → commit `feat: derived frequency scoring`.
+- [x] **Step 2: Verify they fail** → **Step 3: implement** → **Step 4: pass** → commit `feat: derived frequency scoring`.
 
 ---
 
