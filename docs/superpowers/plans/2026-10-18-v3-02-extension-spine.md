@@ -127,13 +127,13 @@
   - `createBrowserDataLayer(): DataLayer` — `loadJson = (p) => fetch(runtime.getURL(p)).then(r => r.ok ? r.json() : Promise.reject(new DataUnavailable(p)))`; detects Chrome/Firefox `runtime` safely.
 - Consumes: Plan 1 artifacts.
 
-- [ ] **Step 1: Failing tests** with an in-memory fixture loader:
+- [x] **Step 1: Failing tests** with an in-memory fixture loader:
   - memoization: `index()` twice → one `loadJson` call; `company("google")` twice → one call.
   - schema mismatch (`schemaVersion: 2`) → `DataUnavailable` from `meta()`.
   - missing company shard → `null`; missing problem shard → `[]`.
   - mask decode: `18` → `["d3m", "all"]`; `derivedFrequency` returns the index value or `undefined`.
   - shard name table: `two-sum` → `tw.json`, `x` → `x_.json`, `3sum` → `3s.json`, `a-b` → `a_.json` (non-alnum at position 2). *(These same four cases are asserted in Plan 1 Task 6 — cross-plan consistency.)*
-- [ ] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass** → commit `feat: runtime data layer (local, memoized, schema-gated)`.
+- [x] **Step 2: Verify fail** → **Step 3: implement** → **Step 4: pass** → commit `feat: runtime data layer (local, memoized, schema-gated)`.
 
 ---
 
