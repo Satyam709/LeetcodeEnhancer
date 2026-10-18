@@ -1,5 +1,17 @@
-/* Injected UI styles — every selector must be scoped under .lce.
-   The full base (tokens, typography) lands in the styles task. */
+/* Injected UI styles — every selector must be scoped under .lce (build-guarded).
+   Tokens are "native-first": LeetCode's own custom properties win wherever they
+   exist, and the neutral value is only a fallback. Native token names
+   (--text-primary, --fill-quaternary, --border-primary) are never redefined —
+   they are consumed directly with their own fallbacks by views. */
 .lce-root {
   color-scheme: inherit;
+  font-family: inherit;
+
+  --sd-background: var(--fill-quaternary, #f6f7f9);
+  --sd-foreground: var(--text-primary, #1a1a1a);
+  --sd-muted: var(--fill-secondary, #eef0f3);
+  --sd-muted-foreground: var(--text-secondary, #6b7280);
+  --sd-easy: var(--difficulty-easy, #00b8a3);
+  --sd-medium: var(--difficulty-medium, #ffb800);
+  --sd-hard: var(--difficulty-hard, #ef4743);
 }

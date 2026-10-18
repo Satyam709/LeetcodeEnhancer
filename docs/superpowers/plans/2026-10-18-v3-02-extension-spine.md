@@ -147,7 +147,7 @@
 - Produces: `.lce-root` scope class defining neutral fallbacks for the tokens views will consume (`--sd-background`, `--sd-foreground`, `--sd-muted`, `--sd-muted-foreground`, `--sd-easy|medium|hard`, `--fill-quaternary`, `--text-primary`, `--border-primary`) and base typography (font-family inherits; no font-size on the root). No other selectors yet.
 - Guard: test builds `src/styles/content.css` through esbuild in-memory, parses selectors, asserts **every** selector starts with `.lce` (also no `:root`, no element selectors, no `@import`/url()).
 
-- [ ] **Step 1: Failing guard test** (write it first against the eventual file; run → fails because file missing) → **Step 2: implement file** → **Step 3: pass** → commit `feat: scoped style base`.
+- [x] **Step 1: Failing guard test** (write it first against the eventual file; run → fails because file missing) → **Step 2: implement file** → **Step 3: pass** → commit `feat: scoped style base`.
 
 ---
 
