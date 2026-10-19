@@ -42,7 +42,7 @@ describe("stub views", () => {
 
   it("log lce:<name> mounted when debug is on, and return a teardown", async () => {
     localStorage.setItem("lce:debug", "1");
-    const spy = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
     const company = createViews().find((view) => view.name === "company");
     expect(company).toBeDefined();
 

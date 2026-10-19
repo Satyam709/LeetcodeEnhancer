@@ -9,7 +9,9 @@ const PREFIX = "[lce]";
 export function debugLog(...args: unknown[]): void {
   try {
     if (localStorage.getItem("lce:debug")) {
-      console.debug(PREFIX, ...args);
+      // console.log, not console.debug: DevTools hides debug/Verbose output by
+      // default, and this is an explicitly opted-in debugging session.
+      console.log(PREFIX, ...args);
     }
   } catch {
     // Storage can be unavailable in exotic contexts — stay silent.

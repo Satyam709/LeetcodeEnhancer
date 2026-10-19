@@ -22,7 +22,7 @@ describe("built content script boot", () => {
     const logs: string[] = [];
     const errors: unknown[][] = [];
     dom.window.localStorage.setItem("lce:debug", "1");
-    dom.window.console.debug = (...args: unknown[]) => {
+    dom.window.console.log = (...args: unknown[]) => {
       logs.push(String(args[1]));
     };
     dom.window.console.error = (...args: unknown[]) => {
