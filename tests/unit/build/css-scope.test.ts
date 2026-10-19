@@ -50,16 +50,18 @@ describe("content.css leak guard", () => {
   it("defines the neutral token set views consume on .lce-root", async () => {
     const { source } = await loadBuiltCss();
     expect(source).toContain(".lce-root");
-    for (const token of [
-      "--sd-background",
-      "--sd-foreground",
-      "--sd-muted",
-      "--sd-muted-foreground",
-      "--sd-easy",
-      "--sd-medium",
-      "--sd-hard",
+    for (const declaration of [
+      "--sd-background: var(--fill-quaternary, #f6f7f9);",
+      "--sd-foreground: var(--text-primary, #1a1a1a);",
+      "--sd-muted: var(--fill-secondary, #eef0f3);",
+      "--sd-muted-foreground: var(--text-secondary, #6b7280);",
+      "--sd-easy: var(--difficulty-easy, #00b8a3);",
+      "--sd-medium: var(--difficulty-medium, #ffb800);",
+      "--sd-hard: var(--difficulty-hard, #ef4743);",
     ]) {
-      expect(source, `missing token ${token}`).toContain(`${token}:`);
+      expect(source, `missing declaration: ${declaration}`).toContain(
+        declaration
+      );
     }
   });
 });

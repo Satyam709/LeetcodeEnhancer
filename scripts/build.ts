@@ -62,20 +62,7 @@ export async function build(opts: BuildOptions): Promise<void> {
     minify,
   };
 
-  if (opts.watch) {
-    const [jsCtx, cssCtx] = await Promise.all([
-      esbuild.context(jsOptions),
-      esbuild.context(cssOptions),
-    ]);
-    await Promise.all([jsCtx.watch(), cssCtx.watch()]);
-    console.log(
-      `watching src/ → ${path.relative(root, outdir)}/ (${opts.browser}, v${pkg.version})`
-    );
-    return;
-  }
-
   await mkdir(outdir, { recursive: true });
-  await Promise.all([esbuild.build(jsOptions), esbuild.build(cssOptions)]);
   await writeFile(
     path.join(outdir, "manifest.json"),
     `${JSON.stringify(manifest, null, 2)}\n`,
@@ -92,6 +79,20 @@ export async function build(opts: BuildOptions): Promise<void> {
     await mkdir(path.dirname(dest), { recursive: true });
     await copyFile(path.join(root, relPath), dest);
   }
+
+  if (opts.watch) {
+    const [jsCtx, cssCtx] = await Promise.all([
+      esbuild.context(jsOptions),
+      esbuild.context(cssOptions),
+    ]);
+    await Promise.all([jsCtx.watch(), cssCtx.watch()]);
+    console.log(
+      `watching src/ → ${path.relative(root, outdir)}/ (${opts.browser}, v${pkg.version})`
+    );
+    return;
+  }
+
+  await Promise.all([esbuild.build(jsOptions), esbuild.build(cssOptions)]);
 
   console.log(
     `built ${path.relative(root, outdir)}/ (${opts.browser}, v${pkg.version})`

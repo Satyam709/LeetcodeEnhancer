@@ -13,6 +13,13 @@ describe("debugLog", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
+  it("only enables on the exact value \"1\"", () => {
+    localStorage.setItem("lce:debug", "true");
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+    debugLog("nope");
+    expect(spy).not.toHaveBeenCalled();
+  });
+
   it("logs with the [lce] prefix when enabled", () => {
     localStorage.setItem("lce:debug", "1");
     const spy = vi.spyOn(console, "log").mockImplementation(() => {});

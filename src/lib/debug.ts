@@ -8,7 +8,7 @@ const PREFIX = "[lce]";
  */
 export function debugLog(...args: unknown[]): void {
   try {
-    if (localStorage.getItem("lce:debug")) {
+    if (localStorage.getItem("lce:debug") === "1") {
       // console.log, not console.debug: DevTools hides debug/Verbose output by
       // default, and this is an explicitly opted-in debugging session.
       console.log(PREFIX, ...args);

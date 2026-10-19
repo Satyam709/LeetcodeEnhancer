@@ -5,6 +5,17 @@ export const BUDGETS = {
   indexBytes: 700 * 1024,
 } as const;
 
+/** Expected lower bounds for a real sync (spec §9.1); tiny fixtures pass 0. */
+export const BANDS = {
+  minCompanies: 400,
+  minProblems: 3000,
+} as const;
+
+export interface ValidationBands {
+  minCompanies: number;
+  minProblems: number;
+}
+
 const SLUG_RE = /^[a-z0-9-]+$/;
 
 const bytes = (value: unknown) => Buffer.byteLength(JSON.stringify(value));
@@ -21,7 +32,8 @@ export interface ValidationResult {
  */
 export function validateArtifacts(
   artifacts: Artifacts,
-  budgets: { totalBytes: number; indexBytes: number } = BUDGETS
+  budgets: { totalBytes: number; indexBytes: number } = BUDGETS,
+  bands: ValidationBands = { minCompanies: 0, minProblems: 0 }
 ): ValidationResult {
   const errors: string[] = [];
   const { meta, index, topics, companyShards, problemShards } = artifacts;
@@ -29,6 +41,18 @@ export function validateArtifacts(
   if (meta.schemaVersion !== 1) {
     errors.push(
       `schemaVersion mismatch: expected 1, got ${meta.schemaVersion}`
+    );
+  }
+
+  if (index.companies.length < bands.minCompanies) {
+    errors.push(
+      `company count below expected band: ${index.companies.length} < ${bands.minCompanies}`
+    );
+  }
+  const problemCount = Object.keys(index.problems).length;
+  if (problemCount < bands.minProblems) {
+    errors.push(
+      `problem count below expected band: ${problemCount} < ${bands.minProblems}`
     );
   }
 

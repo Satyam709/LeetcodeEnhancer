@@ -7,7 +7,7 @@ import type { CompanyData, CompanyWindows } from "./schema";
 import { resolveCompanySlug } from "./slugs";
 import { discoverCompanies, fetchSource, REPO } from "./source";
 import { transformRow, type ProblemRow } from "./transform";
-import { validateArtifacts } from "./validate";
+import { validateArtifacts, BANDS, BUDGETS } from "./validate";
 import { WINDOW_FILES } from "./windows";
 
 const USAGE =
@@ -36,7 +36,7 @@ export function parseArgs(argv: string[]): CliOptions {
   return opts;
 }
 
-async function loadCompanies(
+export async function loadCompanies(
   dir: string,
   folders: string[],
   aliases: Record<string, string>
@@ -100,7 +100,7 @@ export async function main(argv: string[]): Promise<number> {
     rejectedRows,
   });
 
-  const validation = validateArtifacts(artifacts);
+  const validation = validateArtifacts(artifacts, BUDGETS, BANDS);
   if (!validation.ok) {
     console.error(
       `data:sync failed validation (${validation.errors.length} error(s)):`

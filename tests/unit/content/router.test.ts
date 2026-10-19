@@ -130,6 +130,94 @@ describe("createRouter", () => {
     expect(router.currentViewName()).toBe("c"); // b was never recorded
   });
 
+  it("does not mount a superseded target after a slow teardown, and the route stays reachable", async () => {
+    let href = "https://leetcode.com/a";
+    const events: string[] = [];
+
+    let releaseTeardownA!: () => void;
+    const viewA: View = {
+      name: "a",
+      match: (p) => p === "/a",
+      mount: () => {
+        events.push("mount:a");
+        return () =>
+          new Promise<void>((resolve) => {
+            events.push("teardown:a");
+            releaseTeardownA = resolve;
+          });
+      },
+    };
+    const viewB = b(events);
+    const viewC = c(events);
+
+    const router = createRouter({
+      views: [viewA, viewB.view, viewC.view],
+      getHref: () => href,
+    });
+
+    await router.check(); // mounts a
+    href = "https://leetcode.com/b";
+    const bCheck = router.check(); // blocks on a's slow teardown
+    await vi.waitFor(() => expect(releaseTeardownA).toBeTypeOf("function"));
+
+    href = "https://leetcode.com/c";
+    await router.check(); // supersedes b while a's teardown is pending
+    expect(router.currentViewName()).toBe("c");
+
+    releaseTeardownA();
+    await bCheck;
+
+    expect(viewB.mountCalls()).toBe(0); // b never mounted after being superseded
+    expect(events).toEqual(["mount:a", "teardown:a", "mount:c"]);
+    expect(router.currentViewName()).toBe("c");
+
+    // b must still be claimable — a stuck `pending` would block this forever.
+    href = "https://leetcode.com/b";
+    await router.check();
+    expect(viewB.mountCalls()).toBe(1);
+    expect(router.currentViewName()).toBe("b");
+  });
+
+  it("does not double-mount when a check runs during another check's teardown", async () => {
+    let href = "https://leetcode.com/a";
+    const events: string[] = [];
+
+    let releaseTeardownA!: () => void;
+    const viewA: View = {
+      name: "a",
+      match: (p) => p === "/a",
+      mount: () => {
+        events.push("mount:a");
+        return () =>
+          new Promise<void>((resolve) => {
+            events.push("teardown:a");
+            releaseTeardownA = resolve;
+          });
+      },
+    };
+    const viewB = b(events);
+
+    const router = createRouter({
+      views: [viewA, viewB.view],
+      getHref: () => href,
+    });
+
+    await router.check(); // mounts a
+    href = "https://leetcode.com/b";
+    const firstCheck = router.check(); // blocks on a's slow teardown
+    await vi.waitFor(() => expect(releaseTeardownA).toBeTypeOf("function"));
+
+    await router.check(); // same target, must see the in-flight transition
+    expect(viewB.mountCalls()).toBe(0);
+
+    releaseTeardownA();
+    await firstCheck;
+
+    expect(viewB.mountCalls()).toBe(1); // exactly once
+    expect(events).toEqual(["mount:a", "teardown:a", "mount:b"]);
+    expect(router.currentViewName()).toBe("b");
+  });
+
   it("swallows teardown errors", async () => {
     let href = "https://leetcode.com/bad";
     const events: string[] = [];

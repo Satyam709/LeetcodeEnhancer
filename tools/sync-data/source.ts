@@ -44,7 +44,8 @@ export async function fetchSource(opts: {
   const extractDir = path.join(workDir, "extract");
   await mkdir(extractDir, { recursive: true });
   await extract({ file: tarballPath, cwd: extractDir });
-  const [root] = await readdir(extractDir);
+  const entries = await readdir(extractDir, { withFileTypes: true });
+  const root = entries.find((entry) => entry.isDirectory())?.name;
   if (!root) throw new Error("source tarball extracted to an empty directory");
 
   let commitSha = "unknown";

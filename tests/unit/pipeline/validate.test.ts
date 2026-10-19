@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildArtifacts } from "../../../tools/sync-data/build-artifacts";
 import type { CompanyWindows } from "../../../tools/sync-data/schema";
 import type { ProblemRow } from "../../../tools/sync-data/transform";
-import { BUDGETS, validateArtifacts } from "../../../tools/sync-data/validate";
+import { BANDS, BUDGETS, validateArtifacts } from "../../../tools/sync-data/validate";
 
 const row = (slug: string): ProblemRow => ({
   slug,
@@ -45,6 +45,12 @@ describe("BUDGETS", () => {
       totalBytes: 4 * 1024 * 1024,
       indexBytes: 700 * 1024,
     });
+  });
+});
+
+describe("BANDS", () => {
+  it("expects the spec floors: 400 companies, 3000 problems", () => {
+    expect(BANDS).toEqual({ minCompanies: 400, minProblems: 3000 });
   });
 });
 
@@ -123,5 +129,33 @@ describe("validateArtifacts", () => {
     });
     expect(r.errors.join("\n")).toContain("index size budget exceeded");
     expect(r.errors.join("\n")).not.toContain("total size budget exceeded");
+  });
+
+  it("enforces count bands when provided", () => {
+    const companies = validateArtifacts(base(), BUDGETS, {
+      minCompanies: 3,
+      minProblems: 0,
+    });
+    expect(companies.ok).toBe(false);
+    expect(companies.errors.join("\n")).toContain(
+      "company count below expected band: 2 < 3"
+    );
+
+    const problems = validateArtifacts(base(), BUDGETS, {
+      minCompanies: 0,
+      minProblems: 3,
+    });
+    expect(problems.ok).toBe(false);
+    expect(problems.errors.join("\n")).toContain(
+      "problem count below expected band: 2 < 3"
+    );
+  });
+
+  it("passes the count bands when the artifact set reaches them", () => {
+    const r = validateArtifacts(base(), BUDGETS, {
+      minCompanies: 2,
+      minProblems: 2,
+    });
+    expect(r).toEqual({ ok: true, errors: [] });
   });
 });

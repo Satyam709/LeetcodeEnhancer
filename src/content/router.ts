@@ -44,6 +44,11 @@ export function createRouter(opts: RouterOptions): Router {
 
     const gen = ++generation;
 
+    // Claim the target before any await: overlapping checks must see this
+    // transition as in-flight, and a superseding check takes ownership of
+    // `pending` — stale continuations never clear or overwrite it.
+    pending = next;
+
     if (current !== null) {
       const { teardown } = current;
       current = null;
@@ -56,12 +61,14 @@ export function createRouter(opts: RouterOptions): Router {
       }
     }
 
+    // A newer check ran while we awaited the teardown — it owns the transition.
+    if (gen !== generation) return;
+
     if (next === null) {
       pending = null;
       return;
     }
 
-    pending = next;
     let teardown: Teardown | null = null;
     try {
       teardown = await next.mount({ url });
@@ -72,7 +79,8 @@ export function createRouter(opts: RouterOptions): Router {
     }
 
     if (gen !== generation) {
-      // A newer navigation superseded this mount — undo it, keep it off the books.
+      // A newer navigation superseded this mount — undo it, keep it off the
+      // books, and leave `pending` to the check that superseded us.
       if (teardown !== null) {
         try {
           await teardown();
