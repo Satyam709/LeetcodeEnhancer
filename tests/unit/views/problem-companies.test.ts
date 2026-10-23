@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DataLayer } from "../../../src/lib/data/loader";
 import type { Index } from "../../../src/lib/data/types";
 import { mountProblemCompanies } from "../../../src/views/problem-companies";
+import { findLockedCompaniesChip } from "../../../src/lib/dom/selectors";
 import { fixtureDocument, hasFixture } from "../../helpers/dom-fixtures";
 
 const hasProblem = hasFixture("problem-two-sum");
@@ -77,6 +78,7 @@ describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
 
     const chip = document.querySelector(".lce-chip--companies")!;
     expect(chip.tagName).toBe("BUTTON");
+    expect(chip.classList.contains("lce-root")).toBe(true);
     expect(chip.textContent).toContain("Companies");
     expect(chip.textContent).toContain("3");
     expect(chip.getAttribute("aria-expanded")).toBe("false");
@@ -97,6 +99,7 @@ describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
     )!;
     const panel = document.querySelector<HTMLElement>(".lce-panel")!;
     expect(panel.hidden).toBe(true);
+    expect(panel.classList.contains("lce-root")).toBe(true);
 
     chip.click();
     expect(panel.hidden).toBe(false);
@@ -160,6 +163,74 @@ describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
     expect(document.querySelector(".lce-chip--companies")).toBeNull();
     expect(document.querySelector(".lce-panel")).toBeNull();
     teardown();
+  });
+
+  it("waits for the page title to switch before rendering (problem → problem)", async () => {
+    loadFixture();
+    const titleLink = document.querySelector<HTMLAnchorElement>(
+      '[role="heading"] a[href^="/problems/"]'
+    )!;
+    // Simulate the previous problem still rendered while the next one loads.
+    titleLink.setAttribute("href", "/problems/add-two-numbers/");
+
+    let resolveEntries!: (value: typeof ENTRIES) => void;
+    let resolveIndex!: (value: Index) => void;
+    const data = fakeData([]);
+    data.companiesForProblem = () =>
+      new Promise((resolve) => (resolveEntries = resolve));
+    data.index = () => new Promise((resolve) => (resolveIndex = resolve));
+
+    const teardown = mountProblemCompanies({
+      url: new URL("https://leetcode.com/problems/two-sum/"),
+      data,
+      timeoutMs: 1000,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    resolveEntries(ENTRIES);
+    resolveIndex(index);
+
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    expect(document.querySelector(".lce-chip--companies")).toBeNull();
+
+    titleLink.setAttribute("href", "/problems/two-sum/");
+    await vi.waitFor(() =>
+      expect(document.querySelector(".lce-chip--companies")).not.toBeNull()
+    );
+    teardown();
+  });
+
+  it("re-finds the locked chip after data resolves (chip replaced mid-flight)", async () => {
+    loadFixture();
+    let resolveEntries!: (value: typeof ENTRIES) => void;
+    let resolveIndex!: (value: Index) => void;
+    const data = fakeData([]);
+    data.companiesForProblem = () =>
+      new Promise((resolve) => (resolveEntries = resolve));
+    data.index = () => new Promise((resolve) => (resolveIndex = resolve));
+
+    const teardown = mountProblemCompanies({
+      url: new URL("https://leetcode.com/problems/two-sum/"),
+      data,
+      timeoutMs: 1000,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    const located = findLockedCompaniesChip(document);
+    expect(located).not.toBeNull();
+    const { chip: stale, row } = located!;
+    const fresh = stale.cloneNode(true) as HTMLElement;
+    row.replaceChild(fresh, stale);
+
+    resolveEntries(ENTRIES);
+    resolveIndex(index);
+    await vi.waitFor(() =>
+      expect(document.querySelector(".lce-chip--companies")).not.toBeNull()
+    );
+
+    expect(fresh.style.display).toBe("none");
+    expect(stale.style.display).toBe("");
+    teardown();
+    expect(fresh.style.display).toBe("");
   });
 
   it("restores the native chip and removes its UI on teardown", async () => {

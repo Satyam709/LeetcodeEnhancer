@@ -89,6 +89,9 @@ describe.skipIf(!hasProblemset)("mountProblemsetFrequency", () => {
     expect(
       cell.querySelector<HTMLElement>(".lce-freqcell__fill")?.style.width
     ).toBe("100%");
+    expect(cell.querySelector(".lce-sr-only")?.textContent).toBe(
+      "Derived frequency 100 out of 100"
+    );
 
     const addTwo = row("/problems/add-two-numbers");
     const addCell = addTwo.querySelector(".lce-freqcell")!;
@@ -135,19 +138,24 @@ describe.skipIf(!hasProblemset)("mountProblemsetFrequency", () => {
     teardown();
   });
 
-  it("restores every replaced slot on teardown", async () => {
+  it("restores every slot on teardown without detaching React's children", async () => {
     loadFixture();
     const slot = row("/problems/two-sum").querySelector(
       ".relative.flex.gap-0\\.5"
     )!;
+    const native = [...slot.children] as HTMLElement[];
     const originalChildren = slot.childNodes.length;
 
     const teardown = await mount();
-    expect(slot.querySelector(".lce-freqcell")).not.toBeNull();
-    expect(slot.childNodes).toHaveLength(1);
+    const cell = slot.querySelector(".lce-freqcell")!;
+    expect(cell).not.toBeNull();
+    expect(cell.classList.contains("lce-root")).toBe(true);
+    expect(native.every((node) => node.style.display === "none")).toBe(true);
+    expect(slot.childNodes).toHaveLength(originalChildren + 1);
 
     teardown();
     expect(slot.querySelector(".lce-freqcell")).toBeNull();
+    expect(native.every((node) => node.style.display === "")).toBe(true);
     expect(slot.childNodes).toHaveLength(originalChildren);
   });
 

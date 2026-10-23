@@ -8,7 +8,7 @@ import type {
 } from "../../lib/data/types";
 import { debugLog } from "../../lib/debug";
 import { el } from "../../lib/dom/html";
-import { waitFor } from "../../lib/dom/readiness";
+import { waitFor, waitUntil } from "../../lib/dom/readiness";
 import { findCompanyTakeover } from "../../lib/dom/selectors";
 import {
   WINDOW_TABS,
@@ -72,9 +72,6 @@ async function enhance(
   }
   if (signal.aborted) return;
 
-  const takeover = findCompanyTakeover(document);
-  if (takeover === null) return;
-
   let index: Index;
   let shard: CompanyShard | null;
   let meta: Meta;
@@ -92,6 +89,29 @@ async function enhance(
   }
   if (signal.aborted) return;
 
+  // On a company → company SPA navigation the old page's wall can still be in
+  // the document while the new data loads. The Discuss link is slug-specific,
+  // so wait until the page itself has switched before touching its DOM.
+  try {
+    await waitUntil(() => companyPageMatches(slug), {
+      timeoutMs: deps.timeoutMs ?? 10_000,
+      signal,
+    });
+  } catch {
+    return;
+  }
+  if (signal.aborted) return;
+
+  // Re-find after the await: React may have replaced the wall or the column.
+  const takeover = findCompanyTakeover(document);
+  if (
+    takeover === null ||
+    !takeover.wall.isConnected ||
+    !takeover.target.isConnected
+  ) {
+    return;
+  }
+
   const root = createCompanyView({ slug, index, shard, meta, signal });
 
   // Hide the dead toolbar + locked wall instead of detaching them: React keeps
@@ -102,15 +122,36 @@ async function enhance(
     hidden.push({ node, display: node.style.display });
     node.style.display = "none";
   };
-  for (const child of Array.from(takeover.target.children)) {
-    if (!child.contains(takeover.wall)) hide(child as HTMLElement);
-  }
+  const toolbar = Array.from(takeover.target.children).find(
+    (child) => child.querySelector('input[placeholder="Search questions"]') !== null
+  );
+  if (toolbar !== undefined) hide(toolbar as HTMLElement);
   hide(takeover.wall as HTMLElement);
 
   takeover.target.append(root);
   setRestore(() => {
     root.remove();
     for (const entry of hidden) entry.node.style.display = entry.display;
+  });
+}
+
+/** True when the company container already belongs to `slug`. */
+function companyPageMatches(slug: string): boolean {
+  const container = document.querySelector(".company-container");
+  if (container === null) return false;
+  const links = container.querySelectorAll('a[href^="/discuss/topic/"]');
+  if (links.length === 0) return true;
+  return [...links].some((link) => {
+    const href = link.getAttribute("href") ?? "";
+    try {
+      const pathname = new URL(href, "https://leetcode.com").pathname;
+      return (
+        pathname === `/discuss/topic/${slug}/` ||
+        pathname === `/discuss/topic/${slug}`
+      );
+    } catch {
+      return false;
+    }
   });
 }
 
@@ -186,8 +227,10 @@ function createCompanyView(input: ViewInput): HTMLElement {
       attrs: {
         type: "button",
         role: "tab",
+        id: `lce-tab-${tab.key}`,
         "data-window": tab.key,
         "aria-selected": "false",
+        "aria-controls": "lce-company-panel",
       },
     });
     tabButtons.set(tab.key, button);
@@ -232,19 +275,15 @@ function createCompanyView(input: ViewInput): HTMLElement {
 
   const header = el("div", {
     className: "lce-company__row lce-company__head",
-    attrs: { role: "row" },
     children: [
-      column("lce-col--num", "#"),
+      column("lce-col--num", "Rank"),
       column("lce-col--title", "Title"),
       column("lce-col--acc", "Acceptance"),
       column("lce-col--diff", "Difficulty"),
       column("lce-col--freq", "Frequency"),
     ],
   });
-  const rowGroup = el("div", {
-    className: "lce-company__rows",
-    attrs: { role: "rowgroup" },
-  });
+  const rowGroup = el("div", { className: "lce-company__rows" });
   const empty = el("p", {
     className: "lce-company__empty",
     attrs: { hidden: "" },
@@ -253,13 +292,18 @@ function createCompanyView(input: ViewInput): HTMLElement {
     className: "lce-more",
     attrs: { type: "button" },
   });
+  const table = el("div", {
+    className: "lce-company__table",
+    attrs: {
+      id: "lce-company-panel",
+      role: "tabpanel",
+      "aria-label": "Company interview questions",
+    },
+    children: [header, rowGroup],
+  });
 
   root.append(
-    el("div", {
-      className: "lce-company__table",
-      attrs: { role: "table", "aria-label": "Company interview questions" },
-      children: [header, rowGroup],
-    }),
+    table,
     empty,
     el("div", { className: "lce-more-wrap", children: [more] })
   );
@@ -300,7 +344,9 @@ function createCompanyView(input: ViewInput): HTMLElement {
       const active = tabKey === key;
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-selected", active ? "true" : "false");
+      button.tabIndex = active ? 0 : -1;
     }
+    table.setAttribute("aria-labelledby", `lce-tab-${key}`);
   }
 
   for (const [key, button] of tabButtons) {
@@ -310,6 +356,24 @@ function createCompanyView(input: ViewInput): HTMLElement {
       applyQuery();
     });
   }
+  tabs.addEventListener("keydown", (event) => {
+    if (signal.aborted) return;
+    const keys = WINDOW_TABS.map((tab) => tab.key);
+    const currentIndex = keys.indexOf(windowKey);
+    let nextIndex: number | null = null;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % keys.length;
+    else if (event.key === "ArrowLeft")
+      nextIndex = (currentIndex - 1 + keys.length) % keys.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = keys.length - 1;
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+    const nextKey = keys[nextIndex]!;
+    selectTab(nextKey);
+    applyQuery();
+    tabButtons.get(nextKey)?.focus();
+  });
   searchInput.addEventListener("input", () => {
     if (signal.aborted) return;
     search = searchInput.value;
@@ -336,38 +400,35 @@ function createCompanyView(input: ViewInput): HTMLElement {
 }
 
 function column(className: string, text: string): HTMLElement {
-  return el("span", {
-    className: `lce-col ${className}`,
-    text,
-    attrs: { role: "columnheader" },
-  });
+  return el("span", { className: `lce-col ${className}`, text });
 }
 
 function rowNode(row: CompanyRow): HTMLElement {
   const link = el("a", {
     className: "lce-row",
-    attrs: { role: "row", href: `/problems/${row.slug}/` },
+    attrs: {
+      href: `/problems/${row.slug}/`,
+      "aria-label": `${row.title}, ${row.difficulty}, acceptance ${formatAcceptance(
+        row.acceptance
+      )}, frequency ${formatFrequency(row.frequency)}`,
+    },
   });
   link.append(
     el("span", {
       className: "lce-col lce-col--num lce-row__num",
       text: String(row.id ?? row.position),
-      attrs: { role: "cell" },
     }),
     el("span", {
       className: "lce-col lce-col--title lce-row__title",
       text: row.title,
-      attrs: { role: "cell" },
     }),
     el("span", {
       className: "lce-col lce-col--acc lce-row__acc",
       text: formatAcceptance(row.acceptance),
-      attrs: { role: "cell" },
     }),
     el("span", {
       className: `lce-col lce-col--diff lce-row__diff lce-diff--${row.difficulty.toLowerCase()}`,
       text: row.difficulty,
-      attrs: { role: "cell" },
     }),
     frequencyCell(row.frequency)
   );
@@ -379,7 +440,6 @@ function frequencyCell(frequency: number): HTMLElement {
   const cell = el("span", {
     className: "lce-col lce-col--freq lce-row__freq",
     attrs: {
-      role: "cell",
       title: `Frequency ${formatFrequency(frequency)} — share of interview reports for this company`,
     },
   });

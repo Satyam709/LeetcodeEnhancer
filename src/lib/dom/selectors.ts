@@ -87,20 +87,36 @@ export function findLockedCompaniesChip(
 
 /**
  * `/problemset`, `/problem-list/*`: each row is an `<a>` to the exact problem
- * pathname (daily-question banner links carry a query string and are excluded).
+ * pathname. Calendar/daily links carry a query string and are excluded; the
+ * remaining anchors are grouped by parent, and the largest group is the list
+ * (so a stray "next problem" link never moves the pagination observer).
  */
 export function problemsetRows(root: ParentNode): HTMLAnchorElement[] {
-  const rows: HTMLAnchorElement[] = [];
+  const groups = new Map<Element, HTMLAnchorElement[]>();
   for (const anchor of root.querySelectorAll<HTMLAnchorElement>(
     'a[href*="/problems/"]'
   )) {
     const href = anchor.getAttribute("href");
-    if (href === null) continue;
-    const url = new URL(href, "https://leetcode.com");
-    if (!/^\/problems\/[^/]+\/?$/.test(url.pathname)) continue;
-    rows.push(anchor);
+    if (href === null || href.includes("?")) continue;
+    let pathname: string;
+    try {
+      pathname = new URL(href, "https://leetcode.com").pathname;
+    } catch {
+      continue;
+    }
+    if (!/^\/problems\/[^/]+\/?$/.test(pathname)) continue;
+    const parent = anchor.parentElement;
+    if (parent === null) continue;
+    const group = groups.get(parent);
+    if (group === undefined) groups.set(parent, [anchor]);
+    else group.push(anchor);
   }
-  return rows;
+
+  let largest: HTMLAnchorElement[] = [];
+  for (const group of groups.values()) {
+    if (group.length > largest.length) largest = group;
+  }
+  return largest;
 }
 
 export interface LockedFrequencySlot {

@@ -180,6 +180,12 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     expect(
       document.querySelector(".lce-tab.is-active")?.textContent
     ).toBe("30 days");
+    expect(
+      document.querySelector('[data-window="d30"]')?.getAttribute("aria-controls")
+    ).toBe("lce-company-panel");
+    expect(
+      document.querySelector("#lce-company-panel")?.getAttribute("role")
+    ).toBe("tabpanel");
 
     const rendered = rows();
     expect(rendered).toHaveLength(2);
@@ -209,6 +215,33 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     const empty = document.querySelector<HTMLElement>(".lce-company__empty")!;
     expect(empty.hidden).toBe(false);
     expect(empty.textContent).toBe("No questions in this window.");
+    teardown();
+  });
+
+  it("wires the tabs for keyboard navigation", async () => {
+    loadFixture();
+    const teardown = await mount();
+
+    const d30 = document.querySelector<HTMLButtonElement>('[data-window="d30"]')!;
+    const all = document.querySelector<HTMLButtonElement>('[data-window="all"]')!;
+    expect(d30.tabIndex).toBe(0);
+    expect(all.tabIndex).toBe(-1);
+
+    d30.focus();
+    d30.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })
+    );
+    const d3m = document.querySelector<HTMLButtonElement>('[data-window="d3m"]')!;
+    expect(document.activeElement).toBe(d3m);
+    expect(d3m.getAttribute("aria-selected")).toBe("true");
+    expect(d3m.tabIndex).toBe(0);
+
+    d3m.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "End", bubbles: true })
+    );
+    expect(document.activeElement).toBe(all);
+    expect(all.getAttribute("aria-selected")).toBe("true");
+    expect(document.querySelector(".lce-tab.is-active")).toBe(all);
     teardown();
   });
 
@@ -284,6 +317,92 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
 
     expect(document.querySelector(".lce-company")).toBeNull();
     teardown();
+  });
+
+  it("waits for the company page itself to switch before taking over", async () => {
+    loadFixture();
+    const discuss = document.querySelector<HTMLAnchorElement>(
+      '.company-container a[href^="/discuss/topic/"]'
+    )!;
+    expect(discuss).not.toBeNull();
+    // Simulate the previous company still rendered while the next one loads.
+    discuss.setAttribute("href", "/discuss/topic/meta/");
+    const wall = document.querySelector<HTMLElement>(
+      '[class*="company_subscribeContainer"]'
+    )!;
+
+    let resolveIndex!: (value: Index) => void;
+    let resolveShard!: (value: CompanyShard | null) => void;
+    let resolveMeta!: (value: Meta) => void;
+    const teardown = mountCompanyPage({
+      url: new URL("https://leetcode.com/company/google/"),
+      data: fakeData({
+        index: () => new Promise((resolve) => (resolveIndex = resolve)),
+        company: () => new Promise((resolve) => (resolveShard = resolve)),
+        meta: () => new Promise((resolve) => (resolveMeta = resolve)),
+      }),
+      timeoutMs: 1000,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    resolveIndex(index);
+    resolveShard(shard);
+    resolveMeta(meta);
+
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    expect(document.querySelector(".lce-company")).toBeNull();
+    expect(wall.style.display).toBe("");
+
+    discuss.setAttribute("href", "/discuss/topic/google/");
+    await vi.waitFor(() =>
+      expect(document.querySelector(".lce-company")).not.toBeNull()
+    );
+    expect(wall.style.display).toBe("none");
+
+    teardown();
+    expect(wall.style.display).toBe("");
+  });
+
+  it("re-finds the takeover after data resolves (wall replaced mid-flight)", async () => {
+    loadFixture();
+    let resolveIndex!: (value: Index) => void;
+    let resolveShard!: (value: CompanyShard) => void;
+    let resolveMeta!: (value: Meta) => void;
+    const data = fakeData({
+      index: () => new Promise((resolve) => (resolveIndex = resolve)),
+      company: () => new Promise((resolve) => (resolveShard = resolve)),
+      meta: () => new Promise((resolve) => (resolveMeta = resolve)),
+    });
+    const teardown = mountCompanyPage({
+      url: new URL("https://leetcode.com/company/google/"),
+      data,
+      timeoutMs: 1000,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    const target = document.querySelector(".company-container")!.children[1]!;
+    const staleWrapper = target.children[1]!;
+    const freshWrapper = staleWrapper.cloneNode(true) as HTMLElement;
+    target.replaceChild(freshWrapper, staleWrapper);
+
+    resolveIndex(index);
+    resolveShard(shard);
+    resolveMeta(meta);
+    await vi.waitFor(() =>
+      expect(document.querySelector(".lce-company")).not.toBeNull()
+    );
+
+    const liveWall = freshWrapper.querySelector<HTMLElement>(
+      '[class*="company_subscribeContainer"]'
+    )!;
+    expect(liveWall.style.display).toBe("none");
+    expect(freshWrapper.style.display).toBe("");
+    const toolbar = target.children[0] as HTMLElement;
+    expect(toolbar.style.display).toBe("none");
+
+    teardown();
+    expect(liveWall.style.display).toBe("");
+    expect(toolbar.style.display).toBe("");
+    expect(document.querySelector(".lce-company")).toBeNull();
   });
 
   it("restores the native wall on teardown", async () => {

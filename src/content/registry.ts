@@ -10,6 +10,12 @@ export type Teardown = () => void | Promise<void>;
 export interface View {
   name: string;
   match(pathname: string): boolean;
+  /**
+   * Identity of the content this view owns. When it changes, the router treats
+   * the navigation as a new route and remounts (e.g. company/problem slug).
+   * Defaults to the view name, preserving "same view, no remount" semantics.
+   */
+  key?(pathname: string): string;
   mount(ctx: { url: URL }): Promise<Teardown> | Teardown;
 }
 
@@ -44,6 +50,7 @@ export function createViews(opts: CreateViewsOptions = {}): View[] {
   return SPECS.map(({ name, pattern }) => ({
     name,
     match: (pathname: string) => pattern.test(pathname),
+    key: (pathname: string) => viewKey(name, pathname),
     mount: ({ url }) => {
       const teardown = mountFor(name, url, data, opts.timeoutMs);
       debugLog(`lce:${name} mounted`);
@@ -56,6 +63,19 @@ export function createViews(opts: CreateViewsOptions = {}): View[] {
       };
     },
   }));
+}
+
+function viewKey(name: string, pathname: string): string {
+  switch (name) {
+    case "company":
+      return /^\/company\/([^/]+)/.exec(pathname)?.[1] ?? pathname;
+    case "problem":
+      return /^\/problems\/([^/]+)/.exec(pathname)?.[1] ?? pathname;
+    case "problem-list":
+      return pathname;
+    default:
+      return "problemset";
+  }
 }
 
 function mountFor(

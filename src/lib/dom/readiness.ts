@@ -55,3 +55,60 @@ export function waitFor(
     observer.observe(root, { childList: true, subtree: true });
   });
 }
+
+export interface WaitUntilOptions {
+  /** Abort the wait early (e.g. a view was torn down). */
+  signal?: AbortSignal;
+  /** How long to wait before rejecting, in ms. Defaults to 15 s. */
+  timeoutMs?: number;
+  /** Where to observe. Defaults to `document`. */
+  root?: ParentNode;
+}
+
+/**
+ * Wait until `predicate` holds. Used after SPA navigations to wait for the new
+ * page to replace the old one's DOM (e.g. the slug-specific Discuss link).
+ * Rejects with `waitFor aborted` / `waitFor timeout: predicate`.
+ */
+export function waitUntil(
+  predicate: () => boolean,
+  opts: WaitUntilOptions = {}
+): Promise<void> {
+  const { signal, timeoutMs = DEFAULT_TIMEOUT_MS, root = document } = opts;
+
+  if (signal?.aborted) return Promise.reject(new Error("waitFor aborted"));
+  if (predicate()) return Promise.resolve();
+
+  return new Promise<void>((resolve, reject) => {
+    const observer = new MutationObserver(() => {
+      if (predicate()) {
+        cleanup();
+        resolve();
+      }
+    });
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("waitFor timeout: predicate"));
+    }, timeoutMs);
+
+    function cleanup(): void {
+      observer.disconnect();
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
+    }
+
+    function onAbort(): void {
+      cleanup();
+      reject(new Error("waitFor aborted"));
+    }
+
+    signal?.addEventListener("abort", onAbort);
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+    });
+  });
+}

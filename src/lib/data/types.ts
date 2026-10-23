@@ -50,7 +50,7 @@ export interface IndexProblem {
   id: number | null;
   title: string;
   difficulty: Difficulty;
-  /** Raw acceptance × 10000 (one decimal of percent). */
+  /** Percent with one decimal (58 → 58.0%). */
   acceptance: number;
   /** Topic ids into topics.json order. */
   topics: number[];

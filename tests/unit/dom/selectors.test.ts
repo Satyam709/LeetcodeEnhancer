@@ -64,7 +64,7 @@ describe.skipIf(!hasProblem)("problem selectors", () => {
 describe.skipIf(!hasProblemset)("problemset selectors", () => {
   const doc = hasProblemset ? fixtureDocument("problemset") : null;
 
-  it("collects problem row anchors with clean pathnames", () => {
+  it("collects only the problem-list rows (calendar links excluded)", () => {
     const rows = problemsetRows(doc!);
     expect(rows.length).toBeGreaterThan(50);
     const first = rows[0]!;
@@ -72,6 +72,13 @@ describe.skipIf(!hasProblemset)("problemset selectors", () => {
     expect(rows.some((row) => row.pathname.startsWith("/problems/two-sum"))).toBe(
       true
     );
+    // Every returned row belongs to one list container…
+    const parents = new Set(rows.map((row) => row.parentElement));
+    expect(parents.size).toBe(1);
+    // …and no calendar/daily link (query string) sneaks in.
+    expect(
+      rows.every((row) => (row.getAttribute("href") ?? "").includes("?") === false)
+    ).toBe(true);
   });
 
   it("finds the locked frequency slot for a row", () => {

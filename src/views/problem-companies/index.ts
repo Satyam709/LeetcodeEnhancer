@@ -3,7 +3,7 @@ import { DataUnavailable } from "../../lib/data/loader";
 import type { Index, IndexCompany } from "../../lib/data/types";
 import { debugLog } from "../../lib/debug";
 import { el } from "../../lib/dom/html";
-import { waitFor } from "../../lib/dom/readiness";
+import { waitFor, waitUntil } from "../../lib/dom/readiness";
 import {
   PREMIUM_LOCK_IMG,
   findLockedCompaniesChip,
@@ -60,9 +60,6 @@ async function enhance(
   }
   if (signal.aborted) return;
 
-  const found = findLockedCompaniesChip(document);
-  if (found === null) return;
-
   let entries: ProblemCompanyEntry[];
   let index: Index;
   try {
@@ -77,6 +74,22 @@ async function enhance(
     return;
   }
   if (signal.aborted) return;
+
+  // On a problem → problem SPA navigation the old title/chip row can still be
+  // in the document. Wait until the page's own title link points at our slug.
+  try {
+    await waitUntil(() => problemPageMatches(slug), {
+      timeoutMs: deps.timeoutMs ?? 10_000,
+      signal,
+    });
+  } catch {
+    return;
+  }
+  if (signal.aborted) return;
+
+  // Re-find after the await: React may have re-rendered the chip row meanwhile.
+  const found = findLockedCompaniesChip(document);
+  if (found === null) return;
 
   const companies: CompanyWithWindows[] = [];
   for (const entry of entries) {
@@ -105,7 +118,7 @@ async function enhance(
   ).size;
 
   const button = el("button", {
-    className: "lce-chip lce-chip--companies",
+    className: "lce-root lce-chip lce-chip--companies",
     attrs: {
       type: "button",
       "aria-expanded": "false",
@@ -121,7 +134,7 @@ async function enhance(
   });
 
   const panel = el("div", {
-    className: "lce-panel",
+    className: "lce-root lce-panel",
     attrs: { id: "lce-companies-panel", hidden: "" },
   });
 
@@ -136,15 +149,21 @@ async function enhance(
     button.setAttribute("aria-expanded", open ? "true" : "false");
   });
 
-  chip.style.display = "none";
-  row.insertBefore(button, chip);
-  row.insertAdjacentElement("afterend", panel);
-
-  setRestore(() => {
+  const cleanup = (): void => {
     chip.style.display = previousDisplay;
     button.remove();
     panel.remove();
-  });
+  };
+
+  try {
+    row.insertBefore(button, chip);
+    row.insertAdjacentElement("afterend", panel);
+    chip.style.display = "none";
+  } catch (err) {
+    cleanup();
+    throw err;
+  }
+  setRestore(cleanup);
 }
 
 type CompanyWithWindows = {
@@ -191,6 +210,21 @@ function appendSection(
       children: [title, chips],
     })
   );
+}
+
+/** True when the page title link already belongs to `slug`. */
+function problemPageMatches(slug: string): boolean {
+  const anchor = document.querySelector(
+    '[role="heading"] a[href^="/problems/"]'
+  );
+  if (anchor === null) return true;
+  const href = anchor.getAttribute("href") ?? "";
+  try {
+    const pathname = new URL(href, "https://leetcode.com").pathname;
+    return pathname === `/problems/${slug}/` || pathname === `/problems/${slug}`;
+  } catch {
+    return true;
+  }
 }
 
 function problemSlug(pathname: string): string | null {

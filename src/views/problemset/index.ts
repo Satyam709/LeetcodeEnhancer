@@ -74,7 +74,6 @@ async function enhance(
 
   const enhanceRow = (row: Element): void => {
     if (processed.has(row)) return;
-    processed.add(row);
 
     const slug = rowSlug(row);
     if (slug === null) return;
@@ -85,14 +84,22 @@ async function enhance(
 
     const found = findLockedFrequencySlot(row);
     if (found === null) return;
+    processed.add(row);
 
-    const original = Array.from(found.slot.childNodes);
-    found.slot.replaceChildren(frequencyCell(score));
+    // Hide React's bars/lock in place and append our cell: detaching them would
+    // make a later React commit remove a node it still tracks.
+    const cell = frequencyCell(score);
+    const hidden: { node: HTMLElement; display: string }[] = [];
+    for (const child of Array.from(found.slot.children)) {
+      const node = child as HTMLElement;
+      hidden.push({ node, display: node.style.display });
+      node.style.display = "none";
+    }
+    found.slot.append(cell);
+
     restores.push(() => {
-      // React may have recycled this slot; only touch it while our cell lives.
-      if (found.slot.querySelector(".lce-freqcell") !== null) {
-        found.slot.replaceChildren(...original);
-      }
+      cell.remove();
+      for (const entry of hidden) entry.node.style.display = entry.display;
     });
   };
 
@@ -116,7 +123,12 @@ async function enhance(
 function rowSlug(row: Element): string | null {
   const href = row.getAttribute("href");
   if (href === null) return null;
-  const pathname = new URL(href, "https://leetcode.com").pathname;
+  let pathname: string;
+  try {
+    pathname = new URL(href, "https://leetcode.com").pathname;
+  } catch {
+    return null;
+  }
   const match = /^\/problems\/([^/]+)\/?$/.exec(pathname);
   if (match === null) return null;
   try {
@@ -129,12 +141,16 @@ function rowSlug(row: Element): string | null {
 function frequencyCell(score: number): HTMLElement {
   const percent = Math.max(0, Math.min(100, score));
   const cell = el("span", {
-    className: "lce-freqcell",
+    className: "lce-root lce-freqcell",
     attrs: {
       title: `Derived frequency ${score}/100 — community company data`,
     },
   });
   cell.append(
+    el("span", {
+      className: "lce-sr-only",
+      text: `Derived frequency ${score} out of 100`,
+    }),
     el("span", {
       className: "lce-freqcell__track",
       children: [

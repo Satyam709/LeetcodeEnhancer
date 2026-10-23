@@ -29,7 +29,7 @@ export interface CompanyRow {
   id: number | null;
   title: string;
   difficulty: Difficulty;
-  /** Stored tenths-of-percent value (58 → 58.0%). */
+  /** Percent with one decimal (58 → 58.0%). */
   acceptance: number;
   /** Community frequency (0–100) for the active window. */
   frequency: number;

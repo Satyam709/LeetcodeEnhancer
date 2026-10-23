@@ -7,13 +7,13 @@
   color-scheme: inherit;
   font-family: inherit;
 
-  --sd-background: var(--fill-quaternary, #f6f7f9);
-  --sd-foreground: var(--text-primary, #1a1a1a);
-  --sd-muted: var(--fill-secondary, #eef0f3);
-  --sd-muted-foreground: var(--text-secondary, #6b7280);
-  --sd-easy: var(--difficulty-easy, #00b8a3);
-  --sd-medium: var(--difficulty-medium, #ffb800);
-  --sd-hard: var(--difficulty-hard, #ef4743);
+  --lce-background: var(--fill-quaternary, #f6f7f9);
+  --lce-foreground: var(--text-primary, #1a1a1a);
+  --lce-muted: var(--fill-secondary, #eef0f3);
+  --lce-muted-foreground: var(--text-secondary, #6b7280);
+  --lce-easy: var(--difficulty-easy, #00b8a3);
+  --lce-medium: var(--difficulty-medium, #ffb800);
+  --lce-hard: var(--difficulty-hard, #ef4743);
 }
 
 /* Company page — replaces only the locked right column on /company/{slug}. */
@@ -23,7 +23,7 @@
   gap: 14px;
   width: 100%;
   min-width: 0;
-  color: var(--sd-foreground);
+  color: var(--lce-foreground);
 }
 
 .lce-company__header {
@@ -49,15 +49,15 @@
 
 .lce-company__meta {
   margin: 0;
-  color: var(--sd-muted-foreground);
+  color: var(--lce-muted-foreground);
 }
 
 .lce-company__count {
   flex: none;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--sd-background);
-  color: var(--sd-muted-foreground);
+  background: var(--lce-background);
+  color: var(--lce-muted-foreground);
   white-space: nowrap;
 }
 
@@ -73,7 +73,7 @@
   appearance: none;
   border: none;
   background: transparent;
-  color: var(--sd-muted-foreground);
+  color: var(--lce-muted-foreground);
   padding: 8px 10px;
   border-radius: 6px 6px 0 0;
   border-bottom: 2px solid transparent;
@@ -83,13 +83,13 @@
 }
 
 .lce-tab:hover {
-  color: var(--sd-foreground);
-  background: var(--sd-background);
+  color: var(--lce-foreground);
+  background: var(--lce-background);
 }
 
 .lce-tab.is-active {
-  color: var(--sd-foreground);
-  border-bottom-color: var(--sd-foreground);
+  color: var(--lce-foreground);
+  border-bottom-color: var(--lce-foreground);
   font-weight: 600;
 }
 
@@ -107,14 +107,14 @@
   padding: 0 12px;
   border-radius: 999px;
   border: 1px solid var(--border-primary, #e5e7eb);
-  background: var(--sd-background);
-  color: var(--sd-foreground);
+  background: var(--lce-background);
+  color: var(--lce-foreground);
   font: inherit;
   outline: none;
 }
 
 .lce-search:focus {
-  border-color: var(--sd-muted-foreground);
+  border-color: var(--lce-muted-foreground);
 }
 
 .lce-select {
@@ -122,8 +122,8 @@
   padding: 0 10px;
   border-radius: 8px;
   border: 1px solid var(--border-primary, #e5e7eb);
-  background: var(--sd-background);
-  color: var(--sd-foreground);
+  background: var(--lce-background);
+  color: var(--lce-foreground);
   font: inherit;
   cursor: pointer;
 }
@@ -147,8 +147,8 @@
 
 .lce-company__head {
   min-height: 36px;
-  background: var(--sd-background);
-  color: var(--sd-muted-foreground);
+  background: var(--lce-background);
+  color: var(--lce-muted-foreground);
   border-bottom: 1px solid var(--border-primary, #e5e7eb);
 }
 
@@ -174,17 +174,17 @@
 }
 
 .lce-row:hover {
-  background: var(--sd-background);
+  background: var(--lce-background);
 }
 
 .lce-row:focus-visible {
-  outline: 2px solid var(--sd-foreground);
+  outline: 2px solid var(--lce-foreground);
   outline-offset: -2px;
 }
 
 .lce-row__num,
 .lce-row__acc {
-  color: var(--sd-muted-foreground);
+  color: var(--lce-muted-foreground);
 }
 
 .lce-row__title {
@@ -198,15 +198,15 @@
 }
 
 .lce-diff--easy {
-  color: var(--sd-easy);
+  color: var(--lce-easy);
 }
 
 .lce-diff--medium {
-  color: var(--sd-medium);
+  color: var(--lce-medium);
 }
 
 .lce-diff--hard {
-  color: var(--sd-hard);
+  color: var(--lce-hard);
 }
 
 .lce-freqbar {
@@ -215,7 +215,7 @@
   width: 56px;
   height: 6px;
   border-radius: 999px;
-  background: var(--sd-muted);
+  background: var(--lce-muted);
   overflow: hidden;
 }
 
@@ -223,12 +223,12 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--sd-foreground);
+  background: var(--lce-foreground);
   opacity: 0.55;
 }
 
 .lce-freqbar__value {
-  color: var(--sd-muted-foreground);
+  color: var(--lce-muted-foreground);
   font-variant-numeric: tabular-nums;
 }
 
@@ -236,7 +236,7 @@
   margin: 0;
   padding: 32px 16px;
   text-align: center;
-  color: var(--sd-muted-foreground);
+  color: var(--lce-muted-foreground);
   border: 1px dashed var(--border-primary, #e5e7eb);
   border-radius: 8px;
 }
@@ -255,7 +255,7 @@
   appearance: none;
   border: 1px solid var(--border-primary, #e5e7eb);
   background: transparent;
-  color: var(--sd-foreground);
+  color: var(--lce-foreground);
   border-radius: 999px;
   padding: 6px 16px;
   cursor: pointer;
@@ -263,7 +263,7 @@
 }
 
 .lce-more:hover {
-  background: var(--sd-background);
+  background: var(--lce-background);
 }
 
 @media (max-width: 720px) {
@@ -286,8 +286,8 @@
   padding: 4px 10px;
   border: none;
   border-radius: 999px;
-  background: var(--sd-muted);
-  color: var(--sd-foreground);
+  background: var(--lce-muted);
+  color: var(--lce-foreground);
   cursor: pointer;
   font: inherit;
   text-decoration: none;
@@ -298,26 +298,26 @@
 }
 
 .lce-chip:focus-visible {
-  outline: 2px solid var(--sd-foreground);
+  outline: 2px solid var(--lce-foreground);
   outline-offset: 2px;
 }
 
 .lce-chip--companies[aria-expanded="true"] {
-  background: var(--sd-foreground);
-  color: var(--sd-background);
+  background: var(--lce-foreground);
+  color: var(--lce-background);
 }
 
 .lce-chip__count,
 .lce-panel__count {
   padding: 0 6px;
   border-radius: 999px;
-  background: var(--sd-background);
-  color: var(--sd-muted-foreground);
+  background: var(--lce-background);
+  color: var(--lce-muted-foreground);
 }
 
 .lce-chip--companies[aria-expanded="true"] .lce-chip__count {
-  background: var(--sd-muted);
-  color: var(--sd-foreground);
+  background: var(--lce-muted);
+  color: var(--lce-foreground);
 }
 
 .lce-panel {
@@ -328,7 +328,7 @@
   padding: 14px;
   border: 1px solid var(--border-primary, #e5e7eb);
   border-radius: 8px;
-  background: var(--sd-background);
+  background: var(--lce-background);
 }
 
 .lce-panel[hidden] {
@@ -346,7 +346,7 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  color: var(--sd-muted-foreground);
+  color: var(--lce-muted-foreground);
   font-weight: 600;
 }
 
@@ -373,7 +373,7 @@
   width: 100%;
   height: 6px;
   border-radius: 999px;
-  background: var(--sd-muted);
+  background: var(--lce-muted);
   overflow: hidden;
 }
 
@@ -381,6 +381,19 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--sd-foreground);
+  background: var(--lce-foreground);
   opacity: 0.55;
+}
+
+/* Screen-reader-only text (frequency cell accessibility). */
+.lce-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

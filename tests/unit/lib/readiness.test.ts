@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { waitFor } from "../../../src/lib/dom/readiness";
+import { waitFor, waitUntil } from "../../../src/lib/dom/readiness";
 
 afterEach(() => {
   document.body.innerHTML = "";
@@ -98,5 +98,46 @@ describe("waitFor", () => {
       waitFor("#settled", { signal: controller.signal })
     ).resolves.toBe(el);
     expect(() => controller.abort()).not.toThrow();
+  });
+});
+
+describe("waitUntil", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+    vi.restoreAllMocks();
+  });
+
+  it("resolves immediately when the predicate already holds", async () => {
+    document.body.innerHTML = '<a href="/company/google/">g</a>';
+    await expect(
+      waitUntil(() => document.querySelector('a[href="/company/google/"]') !== null)
+    ).resolves.toBeUndefined();
+  });
+
+  it("resolves when the DOM later satisfies the predicate", async () => {
+    const promise = waitUntil(
+      () => document.querySelector(".ready") !== null,
+      { timeoutMs: 1000 }
+    );
+    setTimeout(() => {
+      const node = document.createElement("i");
+      node.className = "ready";
+      document.body.appendChild(node);
+    }, 10);
+    await expect(promise).resolves.toBeUndefined();
+  });
+
+  it("rejects on abort and on timeout", async () => {
+    const controller = new AbortController();
+    const aborted = waitUntil(() => false, {
+      timeoutMs: 1000,
+      signal: controller.signal,
+    });
+    controller.abort();
+    await expect(aborted).rejects.toThrow("waitFor aborted");
+
+    await expect(
+      waitUntil(() => false, { timeoutMs: 20 })
+    ).rejects.toThrow("waitFor timeout: predicate");
   });
 });

@@ -32,8 +32,11 @@ happen in one browser session per browser, including at least one hard reload.
      bars; premium rows without a lock are untouched
    - open page 2 of the list → newly rendered rows are enhanced too
 8. Theme: toggle light / dark / system → our surfaces follow LeetCode tokens
-9. SPA navigation: problemset → problem → company → back; exactly one
-   `mounted`/`unmounted` per view, hidden native nodes are restored, no errors
+9. SPA navigation: problemset → problem → company → back; then use **Next
+   problem** (problem → problem) and the company header search (company →
+   company). Exactly one `mounted`/`unmounted` per slug change, the visible
+   surface always matches the current slug, hidden native nodes are restored,
+   no errors
 10. Firefox: `about:debugging#/runtime/this-firefox` → **Load Temporary
     Add-on…** → select `dist/manifest.json` → repeat 3–9 after
     `pnpm build:firefox` (re-run `pnpm build` afterwards for Chrome)

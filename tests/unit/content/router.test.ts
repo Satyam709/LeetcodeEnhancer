@@ -81,6 +81,39 @@ describe("createRouter", () => {
     expect(router.currentViewName()).toBe("company");
   });
 
+  it("remounts when the content key changes but not for subroutes", async () => {
+    let href = "https://leetcode.com/problems/two-sum/";
+    const events: string[] = [];
+    let mounts = 0;
+    const problem: View = {
+      name: "problem",
+      match: (p) => p.startsWith("/problems/"),
+      key: (p) => p.split("/")[2] ?? p,
+      mount: () => {
+        mounts += 1;
+        events.push("mount:problem");
+        return () => {
+          events.push("teardown:problem");
+        };
+      },
+    };
+    const router = createRouter({ views: [problem], getHref: () => href });
+
+    await router.check();
+    href = "https://leetcode.com/problems/two-sum/description/";
+    await router.check();
+    expect(mounts).toBe(1);
+
+    href = "https://leetcode.com/problems/add-two-numbers/";
+    await router.check();
+    expect(mounts).toBe(2);
+    expect(events).toEqual([
+      "mount:problem",
+      "teardown:problem",
+      "mount:problem",
+    ]);
+  });
+
   it("discards a mount that a newer navigation superseded", async () => {
     let href = "https://leetcode.com/a";
     const events: string[] = [];

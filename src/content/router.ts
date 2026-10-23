@@ -26,8 +26,12 @@ export interface Router {
 export function createRouter(opts: RouterOptions): Router {
   const { views, getHref = () => location.href, pollMs = 300 } = opts;
 
-  let current: { view: View; teardown: Teardown | null } | null = null;
-  let pending: View | null = null;
+  let current: {
+    view: View;
+    key: string;
+    teardown: Teardown | null;
+  } | null = null;
+  let pending: { view: View; key: string } | null = null;
   let generation = 0;
   let interval: ReturnType<typeof setInterval> | null = null;
   let started = false;
@@ -36,18 +40,22 @@ export function createRouter(opts: RouterOptions): Router {
     // Absolute hrefs win; the base only makes relative test hrefs workable.
     const url = new URL(getHref(), "https://leetcode.com");
     const next = views.find((view) => view.match(url.pathname)) ?? null;
+    const nextKey = next === null ? null : (next.key?.(url.pathname) ?? next.name);
 
     // Nothing mounted, nothing to mount, nothing in flight.
     if (next === null && current === null && pending === null) return;
-    // Same view, already active or already mounting — never remount.
-    if (next !== null && (next === current?.view || next === pending)) return;
+    if (next !== null) {
+      // Same view + same content key: already active or already mounting.
+      if (next === current?.view && nextKey === current.key) return;
+      if (next === pending?.view && nextKey === pending.key) return;
+    }
 
     const gen = ++generation;
 
     // Claim the target before any await: overlapping checks must see this
     // transition as in-flight, and a superseding check takes ownership of
     // `pending` — stale continuations never clear or overwrite it.
-    pending = next;
+    pending = next === null || nextKey === null ? null : { view: next, key: nextKey };
 
     if (current !== null) {
       const { teardown } = current;
@@ -65,6 +73,10 @@ export function createRouter(opts: RouterOptions): Router {
     if (gen !== generation) return;
 
     if (next === null) {
+      pending = null;
+      return;
+    }
+    if (nextKey === null) {
       pending = null;
       return;
     }
@@ -92,7 +104,7 @@ export function createRouter(opts: RouterOptions): Router {
     }
 
     pending = null;
-    current = { view: next, teardown };
+    current = { view: next, key: nextKey, teardown };
   }
 
   function start(): void {
