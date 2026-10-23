@@ -104,7 +104,7 @@ describe("buildRows", () => {
     ]);
   });
 
-  it("sorts by frequency by default, then title, then acceptance", () => {
+  it("sorts by frequency by default, then title, then acceptance, then difficulty", () => {
     expect(
       buildRows(shard, index, query({ window: "all" })).map((row) => row.slug)
     ).toEqual([
@@ -131,6 +131,26 @@ describe("buildRows", () => {
       "two-sum",
       "add-two-numbers",
       "median-of-two-sorted-arrays",
+    ]);
+
+    const swapped: Index = {
+      ...index,
+      problems: {
+        ...index.problems,
+        "two-sum": { ...index.problems["two-sum"]!, difficulty: "Hard" },
+        "add-two-numbers": {
+          ...index.problems["add-two-numbers"]!,
+          difficulty: "Easy",
+        },
+      },
+    };
+    expect(
+      buildRows(shard, swapped, query({ window: "all", sort: "difficulty" }))
+        .map((row) => row.slug)
+    ).toEqual([
+      "add-two-numbers",
+      "median-of-two-sorted-arrays",
+      "two-sum",
     ]);
   });
 

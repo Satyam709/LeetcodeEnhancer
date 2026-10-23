@@ -15,7 +15,20 @@ export const WINDOW_TABS: { key: WindowKey; label: string }[] = [
 ];
 
 export type DifficultyFilter = "all" | Difficulty;
-export type SortKey = "frequency" | "title" | "acceptance";
+export type SortKey = "frequency" | "difficulty" | "title" | "acceptance";
+
+/** Sort direction used for the header indicator. */
+export function sortDirection(sort: SortKey): "ascending" | "descending" {
+  return sort === "title" || sort === "difficulty"
+    ? "ascending"
+    : "descending";
+}
+
+const DIFFICULTY_RANK: Record<Difficulty, number> = {
+  Easy: 0,
+  Medium: 1,
+  Hard: 2,
+};
 
 export interface RowQuery {
   window: WindowKey;
@@ -82,6 +95,13 @@ export function buildRows(
       rows.sort(
         (a, b) =>
           b.acceptance - a.acceptance || collator.compare(a.title, b.title)
+      );
+      break;
+    case "difficulty":
+      rows.sort(
+        (a, b) =>
+          DIFFICULTY_RANK[a.difficulty] - DIFFICULTY_RANK[b.difficulty] ||
+          collator.compare(a.title, b.title)
       );
       break;
     default:

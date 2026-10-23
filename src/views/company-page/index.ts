@@ -17,6 +17,7 @@ import {
   formatCount,
   formatFrequency,
   formatUpdated,
+  sortDirection,
   type CompanyRow,
   type DifficultyFilter,
   type SortKey,
@@ -262,8 +263,9 @@ function createCompanyView(input: ViewInput): HTMLElement {
     attrs: { "aria-label": "Sort" },
     children: [
       el("option", { text: "Frequency", attrs: { value: "frequency" } }),
-      el("option", { text: "Title", attrs: { value: "title" } }),
+      el("option", { text: "Difficulty", attrs: { value: "difficulty" } }),
       el("option", { text: "Acceptance", attrs: { value: "acceptance" } }),
+      el("option", { text: "Title", attrs: { value: "title" } }),
     ],
   });
   root.append(
@@ -273,14 +275,38 @@ function createCompanyView(input: ViewInput): HTMLElement {
     })
   );
 
+  const sortButtons = new Map<SortKey, HTMLButtonElement>();
+  function sortColumn(
+    key: SortKey,
+    label: string,
+    className: string
+  ): HTMLElement {
+    const button = el("button", {
+      className: "lce-sort",
+      text: label,
+      attrs: { type: "button", "data-sort": key },
+    });
+    button.addEventListener("click", () => {
+      if (signal.aborted) return;
+      sort = key;
+      sortSelect.value = key;
+      applyQuery();
+    });
+    sortButtons.set(key, button);
+    return el("span", {
+      className: `lce-col ${className}`,
+      children: [button],
+    });
+  }
+
   const header = el("div", {
     className: "lce-company__row lce-company__head",
     children: [
       column("lce-col--num", "Rank"),
-      column("lce-col--title", "Title"),
-      column("lce-col--acc", "Acceptance"),
-      column("lce-col--diff", "Difficulty"),
-      column("lce-col--freq", "Frequency"),
+      sortColumn("title", "Title", "lce-col--title"),
+      sortColumn("acceptance", "Acceptance", "lce-col--acc"),
+      sortColumn("difficulty", "Difficulty", "lce-col--diff"),
+      sortColumn("frequency", "Frequency", "lce-col--freq"),
     ],
   });
   const rowGroup = el("div", { className: "lce-company__rows" });
@@ -316,6 +342,18 @@ function createCompanyView(input: ViewInput): HTMLElement {
     shown = Math.min(CHUNK, rows.length);
     rowGroup.replaceChildren(...rows.slice(0, shown).map(rowNode));
     updateStatus();
+    updateSortIndicators();
+  }
+
+  function updateSortIndicators(): void {
+    const direction = sortDirection(sort);
+    sortSelect.value = sort;
+    for (const [key, button] of sortButtons) {
+      const active = key === sort;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+      button.dataset.direction = active ? direction : "";
+    }
   }
 
   function appendChunk(): void {

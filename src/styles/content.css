@@ -107,10 +107,15 @@
   padding: 0 12px;
   border-radius: 999px;
   border: 1px solid var(--border-primary, #e5e7eb);
-  background: var(--lce-background);
+  background-color: hsl(var(--sd-popover, 0 0% 100%));
   color: var(--lce-foreground);
   font: inherit;
   outline: none;
+}
+
+.lce-search::placeholder {
+  color: var(--lce-muted-foreground);
+  opacity: 1;
 }
 
 .lce-search:focus {
@@ -122,10 +127,54 @@
   padding: 0 10px;
   border-radius: 8px;
   border: 1px solid var(--border-primary, #e5e7eb);
-  background: var(--lce-background);
+  background-color: hsl(var(--sd-popover, 0 0% 100%));
   color: var(--lce-foreground);
   font: inherit;
   cursor: pointer;
+}
+
+/* Native <option> popups do not inherit our text color on every platform:
+   give them the same solid surface + foreground explicitly. */
+.lce-select option {
+  background-color: hsl(var(--sd-popover, 0 0% 100%));
+  color: var(--lce-foreground);
+}
+
+.lce-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.lce-sort:hover {
+  color: var(--lce-foreground);
+}
+
+.lce-sort:focus-visible {
+  outline: 2px solid var(--lce-foreground);
+  outline-offset: 2px;
+}
+
+.lce-sort.is-active {
+  color: var(--lce-foreground);
+  font-weight: 600;
+}
+
+.lce-sort.is-active[data-direction="ascending"]::after {
+  content: " ↑";
+}
+
+.lce-sort.is-active[data-direction="descending"]::after {
+  content: " ↓";
 }
 
 .lce-company__table {
@@ -278,23 +327,11 @@
   }
 }
 
-/* Problem page — real Companies chip + inline recency panel. */
+/* Problem page — real Companies chip + inline recency panel.
+   The chip/tag shapes come from LeetCode's own utility classes on the nodes;
+   these rules only add focus affordances and the expanded state. */
 .lce-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border: none;
-  border-radius: 999px;
-  background: var(--lce-muted);
-  color: var(--lce-foreground);
-  cursor: pointer;
-  font: inherit;
   text-decoration: none;
-}
-
-.lce-chip:hover {
-  background: var(--fill-primary, #e5e7eb);
 }
 
 .lce-chip:focus-visible {
@@ -303,32 +340,31 @@
 }
 
 .lce-chip--companies[aria-expanded="true"] {
-  background: var(--lce-foreground);
-  color: var(--lce-background);
+  background-color: var(--fill-primary, rgba(0, 0, 0, 0.08));
+  color: var(--text-primary, #1a1a1a);
 }
 
 .lce-chip__count,
 .lce-panel__count {
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--lce-background);
-  color: var(--lce-muted-foreground);
-}
-
-.lce-chip--companies[aria-expanded="true"] .lce-chip__count {
-  background: var(--lce-muted);
-  color: var(--lce-foreground);
+  margin-left: 2px;
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
 }
 
 .lce-panel {
   display: flex;
+  flex: none;
   flex-direction: column;
   gap: 12px;
+  max-height: min(460px, 62vh);
   margin-top: 10px;
   padding: 14px;
-  border: 1px solid var(--border-primary, #e5e7eb);
+  border: 1px solid var(--border-primary, rgba(0, 0, 0, 0.1));
   border-radius: 8px;
-  background: var(--lce-background);
+  background-color: hsl(var(--sd-popover, 0 0% 100%));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .lce-panel[hidden] {
@@ -337,6 +373,7 @@
 
 .lce-panel__section {
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: 8px;
 }
@@ -353,11 +390,7 @@
 .lce-panel__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-}
-
-.lce-chip--sm {
-  padding: 3px 9px;
+  gap: 8px;
 }
 
 /* Problemset / problem-list — derived frequency replaces the locked widget. */
@@ -396,4 +429,49 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Optional "highlight changes" layer, toggled from the extension popup.
+   Green means: this node was injected/replaced by LeetCode Enhancer. */
+.lce-highlight .lce-company,
+.lce-highlight .lce-panel,
+.lce-highlight .lce-freqcell {
+  outline: 1px dashed #22c55e;
+  outline-offset: 2px;
+}
+
+.lce-highlight .lce-company__heading {
+  color: #22c55e;
+}
+
+.lce-highlight .lce-row {
+  box-shadow: inset 3px 0 0 #22c55e;
+}
+
+.lce-highlight .lce-row:hover {
+  background-color: rgba(34, 197, 94, 0.08);
+}
+
+.lce-highlight .lce-freqbar__fill,
+.lce-highlight .lce-freqcell__fill {
+  background-color: #22c55e;
+  opacity: 1;
+}
+
+.lce-highlight .lce-chip {
+  box-shadow: 0 0 0 2px #22c55e;
+}
+
+.lce-highlight .lce-panel {
+  border-color: #22c55e;
+}
+
+.lce-highlight .lce-select,
+.lce-highlight .lce-search {
+  border-color: #22c55e;
+}
+
+.lce-highlight .lce-tab.is-active {
+  color: #22c55e;
+  border-bottom-color: #22c55e;
 }

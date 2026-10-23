@@ -18,6 +18,24 @@ export interface ProblemCompaniesDeps {
 
 const collator = new Intl.Collator("en", { sensitivity: "base" });
 
+/** Copied from the native problem chip row so our chip matches exactly. */
+const NATIVE_CHIP_CLASS =
+  "relative inline-flex items-center justify-center text-caption px-2 py-1 gap-1 rounded-full bg-fill-secondary cursor-pointer transition-colors hover:bg-fill-primary hover:text-text-primary text-sd-secondary-foreground hover:opacity-80";
+
+/** Copied from the native topic tags under the statement. */
+const NATIVE_TAG_CLASS =
+  "no-underline hover:text-current relative inline-flex items-center justify-center text-caption px-2 py-1 gap-1 rounded-full bg-fill-secondary text-text-secondary";
+
+/**
+ * LeetCode's company pages carry a `favoriteSlug` param in their canonical URL
+ * (see the sign-in `next=` links). Linking straight to it avoids the app pushing
+ * a second history entry, which used to require two Backs to leave the page.
+ */
+function companyHref(slug: string): string {
+  const encoded = encodeURIComponent(slug);
+  return `/company/${encoded}/?favoriteSlug=${encoded}-thirty-days`;
+}
+
 /**
  * `/problems/{slug}` — turn the premium-locked Companies chip into a real
  * native-style chip with an inline recency panel. Premium accounts have no
@@ -118,11 +136,12 @@ async function enhance(
   ).size;
 
   const button = el("button", {
-    className: "lce-root lce-chip lce-chip--companies",
+    className: `lce-root lce-chip lce-chip--companies ${NATIVE_CHIP_CLASS}`,
     attrs: {
       type: "button",
       "aria-expanded": "false",
       "aria-controls": "lce-companies-panel",
+      "aria-label": `Companies, ${totalCompanies} companies`,
     },
     children: [
       "Companies",
@@ -198,9 +217,9 @@ function appendSection(
     className: "lce-panel__chips",
     children: sorted.map((company) =>
       el("a", {
-        className: "lce-chip lce-chip--sm",
+        className: `lce-chip lce-chip--sm ${NATIVE_TAG_CLASS}`,
         text: company.name,
-        attrs: { href: `/company/${company.slug}/` },
+        attrs: { href: companyHref(company.slug) },
       })
     ),
   });

@@ -15,10 +15,25 @@ export interface ProblemsetDeps {
   timeoutMs?: number;
 }
 
+/** Coalesce scroll/React churn into at most one scan per window. */
+const SCAN_DELAY_MS = 50;
+
+interface CellState {
+  cell: HTMLElement;
+  slug: string;
+  score: number;
+  /** Native children hidden for this cell, restored if the row is re-rendered. */
+  hidden: HTMLElement[];
+}
+
 /**
  * `/problemset` and `/problem-list/*` — fill the premium-locked frequency cell
- * with our derived score. Rows without data keep LeetCode's native widget, and
- * a row added later (pagination) is enhanced by a child-list observer.
+ * with our derived score. Rows without data keep LeetCode's native widget.
+ *
+ * LeetCode's list is React-managed and re-renders rows while scrolling, so the
+ * view keeps a body-level child-list observer plus a capture-phase scroll
+ * listener. Each pass re-checks every row: a row that lost our cell (or was
+ * recycled for another problem) is enhanced again.
  */
 export function mountProblemsetFrequency(deps: ProblemsetDeps): () => void {
   const controller = new AbortController();
@@ -65,58 +80,102 @@ async function enhance(
   }
   if (signal.aborted) return;
 
-  const rows = problemsetRows(document);
-  const container = rows[0]?.parentElement ?? null;
-  if (container === null) return;
+  if (problemsetRows(document).length === 0) return;
 
-  const processed = new WeakSet<Element>();
-  const restores: (() => void)[] = [];
+  // React owns the native slot children, so we hide them in place instead of
+  // replacing them. The weak map remembers the pre-hide value: a later
+  // re-render must not make "hidden" look like the original display.
+  const originalDisplay = new WeakMap<HTMLElement, string>();
+  const hiddenNodes = new Set<HTMLElement>();
+  const states = new WeakMap<Element, CellState>();
+  const cells = new Set<HTMLElement>();
 
-  const enhanceRow = (row: Element): void => {
-    if (processed.has(row)) return;
+  const hide = (node: HTMLElement): void => {
+    if (!originalDisplay.has(node)) {
+      originalDisplay.set(node, node.style.display);
+    }
+    hiddenNodes.add(node);
+    node.style.display = "none";
+  };
 
+  const clearRow = (row: Element): void => {
+    const state = states.get(row);
+    if (state === undefined) return;
+    state.cell.remove();
+    cells.delete(state.cell);
+    for (const node of state.hidden) {
+      const display = originalDisplay.get(node);
+      if (display !== undefined) node.style.display = display;
+    }
+    states.delete(row);
+  };
+
+  const ensureRow = (row: Element): void => {
     const slug = rowSlug(row);
     if (slug === null) return;
-    const problem = index.problems[slug];
-    if (problem === undefined) return;
-    const score = problem.freqScore;
+
+    const score = index.problems[slug]?.freqScore;
+    const state = states.get(row);
+    if (
+      state !== undefined &&
+      state.slug === slug &&
+      state.score === score &&
+      state.cell.isConnected &&
+      row.contains(state.cell)
+    ) {
+      return;
+    }
+
+    clearRow(row);
     if (typeof score !== "number" || !Number.isFinite(score)) return;
 
     const found = findLockedFrequencySlot(row);
     if (found === null) return;
-    processed.add(row);
 
-    // Hide React's bars/lock in place and append our cell: detaching them would
-    // make a later React commit remove a node it still tracks.
-    const cell = frequencyCell(score);
-    const hidden: { node: HTMLElement; display: string }[] = [];
+    const hidden: HTMLElement[] = [];
     for (const child of Array.from(found.slot.children)) {
       const node = child as HTMLElement;
-      hidden.push({ node, display: node.style.display });
-      node.style.display = "none";
+      hide(node);
+      hidden.push(node);
     }
+
+    const cell = frequencyCell(score);
     found.slot.append(cell);
-
-    restores.push(() => {
-      cell.remove();
-      for (const entry of hidden) entry.node.style.display = entry.display;
-    });
+    cells.add(cell);
+    states.set(row, { cell, slug, score, hidden });
   };
 
-  const enhanceAll = (): void => {
-    for (const row of problemsetRows(document)) enhanceRow(row);
+  const apply = (): void => {
+    if (signal.aborted) return;
+    for (const row of problemsetRows(document)) ensureRow(row);
   };
 
-  enhanceAll();
+  apply();
 
-  const observer = new MutationObserver(() => {
-    if (!signal.aborted) enhanceAll();
-  });
-  observer.observe(container, { childList: true });
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const schedule = (): void => {
+    if (signal.aborted || timer !== null) return;
+    timer = setTimeout(() => {
+      timer = null;
+      apply();
+    }, SCAN_DELAY_MS);
+  };
+
+  const observer = new MutationObserver(schedule);
+  observer.observe(document.body, { childList: true, subtree: true });
+  document.addEventListener("scroll", schedule, { capture: true, passive: true });
 
   setDispose(() => {
     observer.disconnect();
-    for (const restore of restores) restore();
+    document.removeEventListener("scroll", schedule, { capture: true });
+    if (timer !== null) clearTimeout(timer);
+
+    for (const cell of cells) cell.remove();
+    cells.clear();
+    for (const node of hiddenNodes) {
+      node.style.display = originalDisplay.get(node) ?? "";
+    }
+    hiddenNodes.clear();
   });
 }
 

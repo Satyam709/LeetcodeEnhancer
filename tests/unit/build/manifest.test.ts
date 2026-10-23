@@ -18,13 +18,33 @@ const base: ManifestBase = {
 };
 
 describe("buildManifest", () => {
-  it("injects manifest_version 3 and the version, without permissions", () => {
+  it("injects manifest_version 3 and the version, without implicit permissions", () => {
     const manifest = buildManifest(base, { version: "3.0.0", browser: "chrome" });
     expect(manifest.manifest_version).toBe(3);
     expect(manifest.name).toBe("LeetCode Enhancer");
     expect(manifest.version).toBe("3.0.0");
     expect(manifest).not.toHaveProperty("permissions");
     expect(manifest).not.toHaveProperty("host_permissions");
+  });
+
+  it("carries permissions and the action popup through", () => {
+    const withPopup: ManifestBase = {
+      ...base,
+      permissions: ["storage"],
+      action: {
+        default_popup: "popup.html",
+        default_title: "LeetCode Enhancer",
+      },
+    };
+    const manifest = buildManifest(withPopup, {
+      version: "3.0.0",
+      browser: "chrome",
+    });
+    expect(manifest.permissions).toEqual(["storage"]);
+    expect(manifest.action).toEqual({
+      default_popup: "popup.html",
+      default_title: "LeetCode Enhancer",
+    });
   });
 
   it("carries the content script declaration through", () => {
@@ -80,7 +100,8 @@ describe("buildManifest", () => {
     expect(manifest.web_accessible_resources).toEqual([
       { resources: ["data/*"], matches: ["https://leetcode.com/*"] },
     ]);
-    expect(manifest).not.toHaveProperty("permissions");
+    expect(manifest.permissions).toEqual(["storage"]);
+    expect(manifest.action?.default_popup).toBe("popup.html");
   });
 
   it("every icon referenced in manifest.base.json exists on disk as a PNG", async () => {

@@ -279,6 +279,37 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     teardown();
   });
 
+  it("sorts by clicking column headers and keeps the select in sync", async () => {
+    loadFixture();
+    const teardown = await mount();
+    (document.querySelector('[data-window="all"]') as HTMLButtonElement).click();
+
+    const sort = document.querySelector<HTMLSelectElement>(
+      '[aria-label="Sort"]'
+    )!;
+    const difficultyHeader = document.querySelector<HTMLButtonElement>(
+      '[data-sort="difficulty"]'
+    )!;
+    difficultyHeader.click();
+
+    expect(sort.value).toBe("difficulty");
+    expect(
+      rows().map((row) => row.querySelector(".lce-row__diff")?.textContent)
+    ).toEqual(["Easy", "Medium", "Hard"]);
+    expect(difficultyHeader.getAttribute("aria-pressed")).toBe("true");
+    expect(difficultyHeader.dataset.direction).toBe("ascending");
+
+    const titleHeader = document.querySelector<HTMLButtonElement>(
+      '[data-sort="title"]'
+    )!;
+    titleHeader.click();
+    expect(rows()[0]!.textContent).toContain("Add Two Numbers");
+    expect(titleHeader.dataset.direction).toBe("ascending");
+    expect(difficultyHeader.getAttribute("aria-pressed")).toBe("false");
+    expect(sort.value).toBe("title");
+    teardown();
+  });
+
   it("renders the first 100 rows and appends the rest on load more", async () => {
     loadFixture();
     const teardown = await mount(bulkData(150));

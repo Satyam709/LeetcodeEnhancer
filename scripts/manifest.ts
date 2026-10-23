@@ -15,10 +15,19 @@ export interface WebAccessibleResource {
   matches: string[];
 }
 
+export interface ManifestAction {
+  default_popup?: string;
+  default_title?: string;
+  default_icon?: Record<string, string>;
+}
+
 export interface ManifestBase {
   name: string;
   description: string;
   content_scripts: ContentScript[];
+  /** `storage` powers the popup's highlight toggle. */
+  permissions?: string[];
+  action?: ManifestAction;
   /** Required so the content script can fetch data/** via runtime.getURL. */
   web_accessible_resources?: WebAccessibleResource[];
   icons?: Record<string, string>;
@@ -32,6 +41,8 @@ export interface Manifest {
   description: string;
   version: string;
   content_scripts: ContentScript[];
+  permissions?: string[];
+  action?: ManifestAction;
   web_accessible_resources?: WebAccessibleResource[];
   icons?: Record<string, string>;
   browser_specific_settings?: { gecko: { id: string } };
@@ -47,6 +58,8 @@ export function buildManifest(
     description: base.description,
     version: opts.version,
     content_scripts: base.content_scripts,
+    ...(base.permissions ? { permissions: base.permissions } : {}),
+    ...(base.action ? { action: base.action } : {}),
     ...(base.web_accessible_resources
       ? { web_accessible_resources: base.web_accessible_resources }
       : {}),

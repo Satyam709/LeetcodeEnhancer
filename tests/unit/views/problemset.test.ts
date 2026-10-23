@@ -174,6 +174,59 @@ describe.skipIf(!hasProblemset)("mountProblemsetFrequency", () => {
     teardown();
   });
 
+  it("re-applies after React re-renders the frequency slot", async () => {
+    loadFixture();
+    const teardown = await mount();
+    const twoSum = row("/problems/two-sum");
+    const slot = twoSum.querySelector(".relative.flex.gap-0\\.5")!;
+    const donor = row("/problems/median-of-two-sorted-arrays").querySelector(
+      ".relative.flex.gap-0\\.5"
+    )!;
+    // Simulate React replacing the slot's children (scroll/virtualization).
+    slot.replaceChildren(
+      ...Array.from(donor.childNodes).map((node) => node.cloneNode(true))
+    );
+    expect(slot.querySelector(".lce-freqcell")).toBeNull();
+
+    await vi.waitFor(() =>
+      expect(slot.querySelector(".lce-freqcell")).not.toBeNull()
+    );
+    expect(slot.querySelector(".lce-freqcell")?.getAttribute("title")).toContain(
+      "100/100"
+    );
+    teardown();
+  });
+
+  it("re-enhances a row recycled for a different problem", async () => {
+    loadFixture();
+    const teardown = await mount();
+    const median = row("/problems/median-of-two-sorted-arrays");
+    const recycled = median.cloneNode(true) as HTMLAnchorElement;
+    recycled.setAttribute("href", "/problems/new-problem");
+    recycled.id = "999";
+    median.replaceWith(recycled);
+
+    await vi.waitFor(() =>
+      expect(recycled.querySelector(".lce-freqcell")).not.toBeNull()
+    );
+    expect(
+      recycled.querySelector(".lce-freqcell")?.getAttribute("title")
+    ).toContain("77/100");
+    teardown();
+  });
+
+  it("keeps exactly one cell when a scroll event follows a scan", async () => {
+    loadFixture();
+    const teardown = await mount();
+    document.dispatchEvent(new Event("scroll"));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(
+      row("/problems/two-sum").querySelectorAll(".lce-freqcell")
+    ).toHaveLength(1);
+    teardown();
+  });
+
   it("teardown disconnects the pagination observer", async () => {
     loadFixture();
     const teardown = await mount();

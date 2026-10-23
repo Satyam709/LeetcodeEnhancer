@@ -127,6 +127,12 @@ This will create the built extension files ready for installation in both Chrome
    - The extension will now be loaded in your browser and ready to use.
    - You can pin the extension to the toolbar for quick access.
    - Visit Leetcode.com to see the enhanced features in action.
+   - Open the extension popup to toggle **Highlight injected changes**: green
+     outlines/accents mark the community data we add; turn it off for the
+     normal look. The preference is stored locally.
+   - The extension requests only the `storage` permission (for that toggle);
+     all company data is bundled with the extension and no network requests are
+     made.
 
 ---
 

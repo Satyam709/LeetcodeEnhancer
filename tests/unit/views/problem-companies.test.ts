@@ -79,6 +79,8 @@ describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
     const chip = document.querySelector(".lce-chip--companies")!;
     expect(chip.tagName).toBe("BUTTON");
     expect(chip.classList.contains("lce-root")).toBe(true);
+    expect(chip.classList.contains("rounded-full")).toBe(true);
+    expect(chip.classList.contains("bg-fill-secondary")).toBe(true);
     expect(chip.textContent).toContain("Companies");
     expect(chip.textContent).toContain("3");
     expect(chip.getAttribute("aria-expanded")).toBe("false");
@@ -117,9 +119,18 @@ describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
       href: a.getAttribute("href"),
     }));
     expect(lastSix).toEqual([
-      { text: "Amazon", href: "/company/amazon/" },
-      { text: "Google", href: "/company/google/" },
+      {
+        text: "Amazon",
+        href: "/company/amazon/?favoriteSlug=amazon-thirty-days",
+      },
+      {
+        text: "Google",
+        href: "/company/google/?favoriteSlug=google-thirty-days",
+      },
     ]);
+    expect(
+      sections[0]!.querySelector("a")!.classList.contains("bg-fill-secondary")
+    ).toBe(true);
 
     const moreThanSix = sections[1]!.querySelectorAll("a");
     expect([...moreThanSix].map((a) => a.textContent)).toEqual(["Meta"]);

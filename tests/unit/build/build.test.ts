@@ -26,7 +26,7 @@ async function makeWorkspace() {
 }
 
 describe("build", () => {
-  it("emits content.js, content.css, manifest.json and copies data/", async () => {
+  it("emits content.js, content.css, popup assets, manifest.json and copies data/", async () => {
     const { root, dataDir, outdir } = await makeWorkspace();
     try {
       await build({ browser: "chrome", dataDir, outdir });
@@ -34,6 +34,9 @@ describe("build", () => {
       for (const rel of [
         "content.js",
         "content.css",
+        "popup.html",
+        "popup.js",
+        "popup.css",
         "manifest.json",
         "data/meta.json",
         "data/index.json",
@@ -41,12 +44,21 @@ describe("build", () => {
         await expect(access(path.join(outdir, rel))).resolves.toBeUndefined();
       }
 
+      const popupHtml = await readFile(path.join(outdir, "popup.html"), "utf8");
+      expect(popupHtml).toContain("popup.js");
+      expect(popupHtml).toContain("popup.css");
+
+      const popupJs = await readFile(path.join(outdir, "popup.js"), "utf8");
+      expect(popupJs).toContain("highlight");
+
       const manifest = JSON.parse(
         await readFile(path.join(outdir, "manifest.json"), "utf8")
       );
       const pkg = JSON.parse(await readFile("package.json", "utf8"));
       expect(manifest.version).toBe(pkg.version);
       expect(manifest.manifest_version).toBe(3);
+      expect(manifest.permissions).toEqual(["storage"]);
+      expect(manifest.action?.default_popup).toBe("popup.html");
 
       // Everything the manifest references must exist in the build.
       for (const relPath of Object.values<string>(manifest.icons ?? {})) {
@@ -54,6 +66,9 @@ describe("build", () => {
           access(path.join(outdir, relPath))
         ).resolves.toBeUndefined();
       }
+      await expect(
+        access(path.join(outdir, manifest.action.default_popup))
+      ).resolves.toBeUndefined();
     } finally {
       await rm(root, { recursive: true, force: true });
     }
