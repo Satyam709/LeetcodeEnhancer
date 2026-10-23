@@ -64,4 +64,39 @@ describe("waitFor", () => {
     expect(settled).toBe(1);
     expect(disconnect).toHaveBeenCalledTimes(1);
   });
+
+  it("rejects and disconnects when the signal aborts while waiting", async () => {
+    const disconnect = vi.spyOn(MutationObserver.prototype, "disconnect");
+    const controller = new AbortController();
+    const promise = waitFor(".never", {
+      timeoutMs: 1000,
+      signal: controller.signal,
+    });
+
+    controller.abort();
+
+    await expect(promise).rejects.toThrow("waitFor aborted");
+    expect(disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects immediately when the signal is already aborted", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      waitFor("#anything", { signal: controller.signal })
+    ).rejects.toThrow("waitFor aborted");
+  });
+
+  it("does not reject when aborted after it has already resolved", async () => {
+    const controller = new AbortController();
+    const el = document.createElement("div");
+    el.id = "settled";
+    document.body.appendChild(el);
+
+    await expect(
+      waitFor("#settled", { signal: controller.signal })
+    ).resolves.toBe(el);
+    expect(() => controller.abort()).not.toThrow();
+  });
 });
