@@ -277,3 +277,85 @@
     display: none;
   }
 }
+
+/* Problem page — real Companies chip + inline recency panel. */
+.lce-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 999px;
+  background: var(--sd-muted);
+  color: var(--sd-foreground);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: none;
+}
+
+.lce-chip:hover {
+  background: var(--fill-primary, #e5e7eb);
+}
+
+.lce-chip:focus-visible {
+  outline: 2px solid var(--sd-foreground);
+  outline-offset: 2px;
+}
+
+.lce-chip--companies[aria-expanded="true"] {
+  background: var(--sd-foreground);
+  color: var(--sd-background);
+}
+
+.lce-chip__count,
+.lce-panel__count {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--sd-background);
+  color: var(--sd-muted-foreground);
+}
+
+.lce-chip--companies[aria-expanded="true"] .lce-chip__count {
+  background: var(--sd-muted);
+  color: var(--sd-foreground);
+}
+
+.lce-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 14px;
+  border: 1px solid var(--border-primary, #e5e7eb);
+  border-radius: 8px;
+  background: var(--sd-background);
+}
+
+.lce-panel[hidden] {
+  display: none;
+}
+
+.lce-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lce-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--sd-muted-foreground);
+  font-weight: 600;
+}
+
+.lce-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lce-chip--sm {
+  padding: 3px 9px;
+}
