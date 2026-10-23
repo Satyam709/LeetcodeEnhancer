@@ -92,15 +92,25 @@ async function enhance(
   }
   if (signal.aborted) return;
 
-  const original = Array.from(takeover.target.childNodes);
   const root = createCompanyView({ slug, index, shard, meta, signal });
-  takeover.target.replaceChildren(root);
+
+  // Hide the dead toolbar + locked wall instead of detaching them: React keeps
+  // its own children, so a later re-render cannot hit a missing-node error.
+  // The wrapper that also holds the working free-question row stays visible.
+  const hidden: { node: HTMLElement; display: string }[] = [];
+  const hide = (node: HTMLElement): void => {
+    hidden.push({ node, display: node.style.display });
+    node.style.display = "none";
+  };
+  for (const child of Array.from(takeover.target.children)) {
+    if (!child.contains(takeover.wall)) hide(child as HTMLElement);
+  }
+  hide(takeover.wall as HTMLElement);
+
+  takeover.target.append(root);
   setRestore(() => {
-    // Only restore while our view still owns the column: React may have
-    // re-rendered the page between mount and teardown.
-    if (root.parentElement === takeover.target) {
-      takeover.target.replaceChildren(...original);
-    }
+    root.remove();
+    for (const entry of hidden) entry.node.style.display = entry.display;
   });
 }
 

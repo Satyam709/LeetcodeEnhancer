@@ -131,13 +131,24 @@ afterEach(() => {
 });
 
 describe.skipIf(!hasCompany)("mountCompanyPage", () => {
-  it("replaces the locked wall but keeps the native container and left card", async () => {
+  it("hides the locked wall and dead toolbar but keeps the native shell and free row", async () => {
     loadFixture();
+    const wall = document.querySelector<HTMLElement>(
+      '[class*="company_subscribeContainer"]'
+    )!;
+    const target = document.querySelector(".company-container")!
+      .children[1] as HTMLElement;
+    const toolbar = target.children[0] as HTMLElement;
     const teardown = await mount();
 
-    expect(
-      document.querySelector('[class*="company_subscribeContainer"]')
-    ).toBeNull();
+    // Hidden, not detached: React still owns its children.
+    expect(wall.isConnected).toBe(true);
+    expect(wall.style.display).toBe("none");
+    expect(toolbar.style.display).toBe("none");
+    const freeRowWrapper = wall.parentElement!;
+    expect(freeRowWrapper.style.display).toBe("");
+    expect(freeRowWrapper.textContent).toContain("free interview question");
+
     const container = document.querySelector(".company-container")!;
     expect(container.children).toHaveLength(2);
     expect(container.children[0]!.textContent).toContain("Saved");
@@ -275,26 +286,25 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     teardown();
   });
 
-  it("restores the original wall on teardown", async () => {
+  it("restores the native wall on teardown", async () => {
     loadFixture();
-    const wall = document.querySelector(
+    const wall = document.querySelector<HTMLElement>(
       '[class*="company_subscribeContainer"]'
     )!;
     const teardown = await mount();
 
-    expect(
-      document.querySelector('[class*="company_subscribeContainer"]')
-    ).toBeNull();
+    expect(wall.style.display).toBe("none");
     teardown();
 
-    expect(
-      document.querySelector('[class*="company_subscribeContainer"]')
-    ).toBe(wall);
+    expect(wall.style.display).toBe("");
     expect(document.querySelector(".lce-company")).toBeNull();
   });
 
   it("cancels an in-flight enhance pass on immediate teardown", async () => {
     loadFixture();
+    const wall = document.querySelector<HTMLElement>(
+      '[class*="company_subscribeContainer"]'
+    )!;
     const teardown = mountCompanyPage({
       url: new URL("https://leetcode.com/company/google/"),
       data: fakeData(),
@@ -304,8 +314,6 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     await new Promise((resolve) => setTimeout(resolve, 120));
 
     expect(document.querySelector(".lce-company")).toBeNull();
-    expect(
-      document.querySelector('[class*="company_subscribeContainer"]')
-    ).not.toBeNull();
+    expect(wall.style.display).toBe("");
   });
 });

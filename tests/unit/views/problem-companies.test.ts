@@ -81,7 +81,7 @@ describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
     expect(chip.textContent).toContain("3");
     expect(chip.getAttribute("aria-expanded")).toBe("false");
 
-    const locked = [...document.querySelectorAll("div.flex.gap-1 > div")].find(
+    const locked = [...document.querySelectorAll<HTMLElement>("div.flex.gap-1 > div")].find(
       (node) => node.querySelector('img[alt="premium lock icon"]') !== null
     )!;
     expect(locked.style.display).toBe("none");
@@ -138,7 +138,7 @@ describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
 
     expect(document.querySelector(".lce-chip--companies")).toBeNull();
     expect(document.querySelector(".lce-panel")).toBeNull();
-    const locked = [...document.querySelectorAll("div.flex.gap-1 > div")].find(
+    const locked = [...document.querySelectorAll<HTMLElement>("div.flex.gap-1 > div")].find(
       (node) => node.querySelector('img[alt="premium lock icon"]') !== null
     )!;
     expect(locked.style.display).not.toBe("none");
@@ -171,7 +171,7 @@ describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
 
     expect(document.querySelector(".lce-chip--companies")).toBeNull();
     expect(document.querySelector(".lce-panel")).toBeNull();
-    const locked = [...document.querySelectorAll("div.flex.gap-1 > div")].find(
+    const locked = [...document.querySelectorAll<HTMLElement>("div.flex.gap-1 > div")].find(
       (node) => node.querySelector('img[alt="premium lock icon"]') !== null
     )!;
     expect(locked.style.display).toBe("");

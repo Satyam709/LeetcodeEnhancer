@@ -46,9 +46,9 @@ export function findCompanyTakeover(root: ParentNode): CompanyTakeover | null {
 }
 
 export interface LockedCompaniesChip {
-  chip: Element;
+  chip: HTMLElement;
   /** The `flex gap-1` row of problem chips (Easy | Topics | Companies | …). */
-  row: Element;
+  row: HTMLElement;
 }
 
 /**
@@ -80,7 +80,7 @@ export function findLockedCompaniesChip(
     if (!row.classList.contains("flex") || !row.classList.contains("gap-1")) {
       continue;
     }
-    return { chip, row };
+    return { chip: chip as HTMLElement, row: row as HTMLElement };
   }
   return null;
 }

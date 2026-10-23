@@ -1,4 +1,9 @@
+import { createBrowserDataLayer } from "../lib/data/browser";
+import type { DataLayer } from "../lib/data/loader";
 import { debugLog } from "../lib/debug";
+import { mountCompanyPage } from "../views/company-page";
+import { mountProblemCompanies } from "../views/problem-companies";
+import { mountProblemsetFrequency } from "../views/problemset";
 
 export type Teardown = () => void | Promise<void>;
 
@@ -21,19 +26,51 @@ const SPECS: ViewSpec[] = [
   { name: "problem-list", pattern: /^\/problem-list\/?.*$/ },
 ];
 
+export interface CreateViewsOptions {
+  /** Injectable data layer (tests); defaults to the extension-runtime loader. */
+  data?: DataLayer;
+  /** Anchor readiness budget forwarded to the surfaces; tests shorten it. */
+  timeoutMs?: number;
+}
+
 /**
- * The view registry. Stub views for now — Plan 3 replaces each mount with the
- * real surface. Matchers are final: they define which URL each surface owns.
+ * The view registry. Each route owns one native-first surface; the mount logs
+ * exactly once and returns a teardown that restores every touched node. Data is
+ * shared across views through the memoizing data layer.
  */
-export function createViews(): View[] {
+export function createViews(opts: CreateViewsOptions = {}): View[] {
+  const data = opts.data ?? createBrowserDataLayer();
+
   return SPECS.map(({ name, pattern }) => ({
     name,
     match: (pathname: string) => pattern.test(pathname),
-    mount: () => {
+    mount: ({ url }) => {
+      const teardown = mountFor(name, url, data, opts.timeoutMs);
       debugLog(`lce:${name} mounted`);
       return () => {
-        debugLog(`lce:${name} unmounted`);
+        try {
+          teardown();
+        } finally {
+          debugLog(`lce:${name} unmounted`);
+        }
       };
     },
   }));
+}
+
+function mountFor(
+  name: string,
+  url: URL,
+  data: DataLayer,
+  timeoutMs: number | undefined
+): Teardown {
+  switch (name) {
+    case "company":
+      return mountCompanyPage({ url, data, timeoutMs });
+    case "problem":
+      return mountProblemCompanies({ url, data, timeoutMs });
+    default:
+      // "problemset" and "problem-list" share the frequency enhancement.
+      return mountProblemsetFrequency({ data, timeoutMs });
+  }
 }

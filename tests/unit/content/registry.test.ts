@@ -34,13 +34,13 @@ describe("createViews matchers", () => {
   });
 });
 
-describe("stub views", () => {
+describe("view mounts", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     localStorage.clear();
   });
 
-  it("log lce:<name> mounted when debug is on, and return a teardown", async () => {
+  it("log lce:<name> mounted/unmounted exactly once and return a teardown", async () => {
     localStorage.setItem("lce:debug", "1");
     const spy = vi.spyOn(console, "log").mockImplementation(() => {});
     const company = createViews().find((view) => view.name === "company");
@@ -52,6 +52,24 @@ describe("stub views", () => {
 
     expect(spy).toHaveBeenCalledWith("[lce]", "lce:company mounted");
     expect(typeof teardown).toBe("function");
+
     teardown();
+    expect(spy).toHaveBeenCalledWith("[lce]", "lce:company unmounted");
+    expect(
+      spy.mock.calls.filter((call) => call[1] === "lce:company mounted")
+    ).toHaveLength(1);
+    expect(
+      spy.mock.calls.filter((call) => call[1] === "lce:company unmounted")
+    ).toHaveLength(1);
+  });
+
+  it("never throws when mounted without a DOM anchor or runtime data", async () => {
+    const views = createViews({ timeoutMs: 20 });
+    for (const view of views) {
+      const teardown = await view.mount({
+        url: new URL(`https://leetcode.com${view.name === "company" ? "/company/google/" : view.name === "problem" ? "/problems/two-sum/" : "/problemset/"}`),
+      });
+      expect(() => teardown()).not.toThrow();
+    }
   });
 });

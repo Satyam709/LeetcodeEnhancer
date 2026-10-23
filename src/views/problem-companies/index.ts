@@ -100,6 +100,9 @@ async function enhance(
 
   const { chip, row } = found;
   const previousDisplay = chip.style.display;
+  const totalCompanies = new Set(
+    companies.map((entry) => entry.company.slug)
+  ).size;
 
   const button = el("button", {
     className: "lce-chip lce-chip--companies",
@@ -112,7 +115,7 @@ async function enhance(
       "Companies",
       el("span", {
         className: "lce-chip__count",
-        text: String(companies.length),
+        text: String(totalCompanies),
       }),
     ],
   });
