@@ -98,6 +98,8 @@ LeetCode Enhancer is an unofficial project. It is not endorsed by or affiliated 
 
 - Rewritten in TypeScript as a Manifest V3 extension for Chrome and Firefox.
 - Company data comes from a bundled community dataset instead of a Google Sheet, and there is no telemetry.
+- The data refreshes itself: a weekly GitHub Action publishes new data, and the extension picks it up daily without needing a new release. This can be turned off in the popup.
+- New icon.
 - Company lists render on the real company page, and the Companies chip and accordion on problem pages work again. Problem lists show a derived frequency.
 - Every surface matches LeetCode's own styling in light and dark themes, and survives LeetCode re-rendering the page.
 - Premium problem statements and editorials are no longer included.

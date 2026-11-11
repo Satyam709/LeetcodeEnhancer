@@ -803,9 +803,10 @@
 
 /* Optional "highlight changes" layer, toggled from the extension popup.
    Green means: this node was injected/replaced by LeetCode Enhancer. */
+/* Containers only: per-cell outlines on the problemset made every row noisy;
+   the green bar fill below marks those cells on its own. */
 .lce-highlight .lce-company,
-.lce-highlight .lce-acc,
-.lce-highlight .lce-freqcell {
+.lce-highlight .lce-acc {
   outline: 1px dashed #22c55e;
   outline-offset: 2px;
 }
