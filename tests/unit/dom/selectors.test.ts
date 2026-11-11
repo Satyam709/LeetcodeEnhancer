@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  COMPANY_WALL,
   findCompanyTakeover,
   findLockedCompaniesChip,
   findLockedFrequencySlot,
@@ -20,7 +21,7 @@ describe.skipIf(!hasCompany)("company selectors", () => {
     const { container, target, wall } = takeover!;
 
     expect(container.matches(".company-container")).toBe(true);
-    expect(wall.className).toContain("company_subscribeContainer");
+    expect(wall.className).toContain("subscribeContainer");
     expect(target.parentElement).toBe(container);
     expect(target.contains(wall)).toBe(true);
     expect(target.textContent).toContain("Unlock more popular");
@@ -30,9 +31,7 @@ describe.skipIf(!hasCompany)("company selectors", () => {
 
   it("returns null when the wall is absent (premium/native list case)", () => {
     const copy = doc!.cloneNode(true) as Document;
-    copy
-      .querySelector('[class*="company_subscribeContainer"]')
-      ?.remove();
+    copy.querySelector(COMPANY_WALL)?.remove();
     expect(findCompanyTakeover(copy)).toBeNull();
   });
 });
@@ -69,15 +68,17 @@ describe.skipIf(!hasProblemset)("problemset selectors", () => {
     expect(rows.length).toBeGreaterThan(50);
     const first = rows[0]!;
     expect(first.pathname).toMatch(/^\/problems\/[^/]+\/?$/);
-    expect(rows.some((row) => row.pathname.startsWith("/problems/two-sum"))).toBe(
-      true
-    );
+    expect(
+      rows.some((row) => row.pathname.startsWith("/problems/two-sum"))
+    ).toBe(true);
     // Every returned row belongs to one list container…
     const parents = new Set(rows.map((row) => row.parentElement));
     expect(parents.size).toBe(1);
     // …and no calendar/daily link (query string) sneaks in.
     expect(
-      rows.every((row) => (row.getAttribute("href") ?? "").includes("?") === false)
+      rows.every(
+        (row) => (row.getAttribute("href") ?? "").includes("?") === false
+      )
     ).toBe(true);
   });
 
@@ -87,7 +88,7 @@ describe.skipIf(!hasProblemset)("problemset selectors", () => {
     )!;
     const found = findLockedFrequencySlot(row);
     expect(found).not.toBeNull();
-    expect(found!.slot.querySelector('svg.fa-lock-keyhole')).not.toBeNull();
+    expect(found!.slot.querySelector("svg.fa-lock-keyhole")).not.toBeNull();
     expect(found!.slot.classList.contains("relative")).toBe(true);
     expect(found!.slot.classList.contains("flex")).toBe(true);
   });
@@ -97,7 +98,7 @@ describe.skipIf(!hasProblemset)("problemset selectors", () => {
       (candidate) => candidate.pathname === "/problems/two-sum"
     )!;
     const copy = row.cloneNode(true) as HTMLAnchorElement;
-    copy.querySelector('svg.fa-lock-keyhole')?.remove();
+    copy.querySelector("svg.fa-lock-keyhole")?.remove();
     expect(findLockedFrequencySlot(copy)).toBeNull();
   });
 });

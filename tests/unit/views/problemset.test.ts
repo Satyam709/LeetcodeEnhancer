@@ -1,8 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DataLayer } from "../../../src/lib/data/loader";
 import type { Index } from "../../../src/lib/data/types";
-import { mountProblemsetFrequency } from "../../../src/views/problemset";
+import { mountProblemsetFrequency as rawMount } from "../../../src/views/problemset";
 import { fixtureDocument, hasFixture } from "../../helpers/dom-fixtures";
+
+/** Every mount is torn down after each test, even when an assertion throws. */
+const live: (() => void)[] = [];
+const mountProblemsetFrequency: typeof rawMount = (deps) => {
+  const teardown = rawMount(deps);
+  live.push(teardown);
+  return teardown;
+};
 
 const hasProblemset = hasFixture("problemset");
 const PROBLEMSET_BODY = hasProblemset
@@ -48,6 +56,7 @@ function fakeData(overrides: Partial<DataLayer> = {}): DataLayer {
     company: async () => null,
     companiesForProblem: async () => [],
     derivedFrequency: async () => undefined,
+    topics: async () => [],
     ...overrides,
   };
 }
@@ -57,9 +66,7 @@ function loadFixture(): void {
 }
 
 function row(href: string): HTMLAnchorElement {
-  return document.querySelector<HTMLAnchorElement>(
-    `a[href="${href}"]`
-  )!;
+  return document.querySelector<HTMLAnchorElement>(`a[href="${href}"]`)!;
 }
 
 async function mount(timeoutMs = 1000): Promise<() => void> {
@@ -71,6 +78,7 @@ async function mount(timeoutMs = 1000): Promise<() => void> {
 }
 
 afterEach(() => {
+  for (const teardown of live.splice(0)) teardown();
   document.body.innerHTML = "";
   vi.restoreAllMocks();
 });
@@ -191,9 +199,9 @@ describe.skipIf(!hasProblemset)("mountProblemsetFrequency", () => {
     await vi.waitFor(() =>
       expect(slot.querySelector(".lce-freqcell")).not.toBeNull()
     );
-    expect(slot.querySelector(".lce-freqcell")?.getAttribute("title")).toContain(
-      "100/100"
-    );
+    expect(
+      slot.querySelector(".lce-freqcell")?.getAttribute("title")
+    ).toContain("100/100");
     teardown();
   });
 

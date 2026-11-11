@@ -1,12 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DataLayer } from "../../../src/lib/data/loader";
-import type {
-  CompanyShard,
-  Index,
-  Meta,
-} from "../../../src/lib/data/types";
-import { mountCompanyPage } from "../../../src/views/company-page";
+import type { CompanyShard, Index, Meta } from "../../../src/lib/data/types";
+import { COMPANY_WALL } from "../../../src/lib/dom/selectors";
+import { mountCompanyPage as rawMount } from "../../../src/views/company-page";
 import { fixtureDocument, hasFixture } from "../../helpers/dom-fixtures";
+
+/** Every mount is torn down after each test, even when an assertion throws. */
+const live: (() => void)[] = [];
+const mountCompanyPage: typeof rawMount = (deps) => {
+  const teardown = rawMount(deps);
+  live.push(teardown);
+  return teardown;
+};
 
 const hasCompany = hasFixture("company-google");
 
@@ -31,7 +36,7 @@ const index: Index = {
       title: "Two Sum",
       difficulty: "Easy",
       acceptance: 58,
-      topics: [],
+      topics: [0, 1],
       freqScore: 100,
     },
     "add-two-numbers": {
@@ -39,7 +44,7 @@ const index: Index = {
       title: "Add Two Numbers",
       difficulty: "Medium",
       acceptance: 49.5,
-      topics: [],
+      topics: [2, 3],
       freqScore: 90,
     },
     "median-of-two-sorted-arrays": {
@@ -47,7 +52,7 @@ const index: Index = {
       title: "Median of Two Sorted Arrays",
       difficulty: "Hard",
       acceptance: 47.8,
-      topics: [],
+      topics: [0],
       freqScore: 40,
     },
   },
@@ -68,6 +73,8 @@ const shard: CompanyShard = {
   ],
 };
 
+const TOPICS = ["Array", "Hash Table", "Linked List", "Math"];
+
 function fakeData(overrides: Partial<DataLayer> = {}): DataLayer {
   return {
     meta: async () => meta,
@@ -75,13 +82,13 @@ function fakeData(overrides: Partial<DataLayer> = {}): DataLayer {
     company: async (slug) => (slug === "google" ? shard : null),
     companiesForProblem: async () => [],
     derivedFrequency: async (slug) => index.problems[slug]?.freqScore,
+    topics: async () => TOPICS,
     ...overrides,
   };
 }
 
 function loadFixture(): void {
-  document.body.innerHTML =
-    fixtureDocument("company-google").body.innerHTML;
+  document.body.innerHTML = fixtureDocument("company-google").body.innerHTML;
 }
 
 async function mount(
@@ -120,11 +127,18 @@ function bulkData(count: number): DataLayer {
   });
 }
 
+function click(selector: string): void {
+  const node = document.querySelector<HTMLElement>(selector);
+  if (node === null) throw new Error(`no element: ${selector}`);
+  node.click();
+}
+
 function rows(): HTMLElement[] {
   return [...document.querySelectorAll<HTMLElement>(".lce-row")];
 }
 
 afterEach(() => {
+  for (const teardown of live.splice(0)) teardown();
   document.body.innerHTML = "";
   localStorage.clear();
   vi.restoreAllMocks();
@@ -133,9 +147,7 @@ afterEach(() => {
 describe.skipIf(!hasCompany)("mountCompanyPage", () => {
   it("hides the locked wall and dead toolbar but keeps the native shell and free row", async () => {
     loadFixture();
-    const wall = document.querySelector<HTMLElement>(
-      '[class*="company_subscribeContainer"]'
-    )!;
+    const wall = document.querySelector<HTMLElement>(COMPANY_WALL)!;
     const target = document.querySelector(".company-container")!
       .children[1] as HTMLElement;
     const toolbar = target.children[0] as HTMLElement;
@@ -154,13 +166,13 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     expect(container.children[0]!.textContent).toContain("Saved");
     expect(container.children[1]!.querySelector(".lce-company")).not.toBeNull();
 
-    expect(
-      document.querySelector(".lce-company__heading")?.textContent
-    ).toBe("Interview questions");
-    expect(document.querySelector(".lce-company__meta")?.textContent).toContain(
-      "Updated Aug 16, 2026"
+    expect(document.querySelector(".lce-company__heading")?.textContent).toBe(
+      "Interview questions"
     );
-    expect(document.body.textContent).toContain("2,344 questions all time");
+    expect(document.querySelector(".lce-company__meta")?.textContent).toContain(
+      "Community data, updated Aug 16, 2026"
+    );
+    expect(document.body.textContent).toContain("2,344 questions reported");
     teardown();
   });
 
@@ -168,20 +180,25 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     loadFixture();
     const teardown = await mount();
 
-    expect(
-      [...document.querySelectorAll(".lce-tab")].map((tab) => tab.textContent)
-    ).toEqual([
+    const tabs = [...document.querySelectorAll(".lce-tab")];
+    expect(tabs.map((tab) => tab.firstChild?.textContent)).toEqual([
       "30 days",
       "3 months",
       "6 months",
       "More than 6 months",
       "All",
     ]);
+    // Each tab carries the company's per-window question count.
     expect(
-      document.querySelector(".lce-tab.is-active")?.textContent
+      tabs.map((tab) => tab.querySelector(".lce-tab__count")?.textContent)
+    ).toEqual(["2", "2", "2", "2", "2,344"]);
+    expect(
+      document.querySelector(".lce-tab.is-active")?.firstChild?.textContent
     ).toBe("30 days");
     expect(
-      document.querySelector('[data-window="d30"]')?.getAttribute("aria-controls")
+      document
+        .querySelector('[data-window="d30"]')
+        ?.getAttribute("aria-controls")
     ).toBe("lce-company-panel");
     expect(
       document.querySelector("#lce-company-panel")?.getAttribute("role")
@@ -204,17 +221,23 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     loadFixture();
     const teardown = await mount();
 
-    (document.querySelector('[data-window="all"]') as HTMLButtonElement).click();
+    (
+      document.querySelector('[data-window="all"]') as HTMLButtonElement
+    ).click();
     expect(rows()).toHaveLength(3);
     expect(
-      document.querySelector('[data-window="all"]')?.getAttribute("aria-selected")
+      document
+        .querySelector('[data-window="all"]')
+        ?.getAttribute("aria-selected")
     ).toBe("true");
 
-    (document.querySelector('[data-window="d3m"]') as HTMLButtonElement).click();
+    (
+      document.querySelector('[data-window="d3m"]') as HTMLButtonElement
+    ).click();
     expect(rows()).toHaveLength(0);
     const empty = document.querySelector<HTMLElement>(".lce-company__empty")!;
     expect(empty.hidden).toBe(false);
-    expect(empty.textContent).toBe("No questions in this window.");
+    expect(empty.firstChild?.textContent).toBe("No questions in this window.");
     teardown();
   });
 
@@ -222,8 +245,12 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     loadFixture();
     const teardown = await mount();
 
-    const d30 = document.querySelector<HTMLButtonElement>('[data-window="d30"]')!;
-    const all = document.querySelector<HTMLButtonElement>('[data-window="all"]')!;
+    const d30 = document.querySelector<HTMLButtonElement>(
+      '[data-window="d30"]'
+    )!;
+    const all = document.querySelector<HTMLButtonElement>(
+      '[data-window="all"]'
+    )!;
     expect(d30.tabIndex).toBe(0);
     expect(all.tabIndex).toBe(-1);
 
@@ -231,7 +258,9 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     d30.dispatchEvent(
       new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })
     );
-    const d3m = document.querySelector<HTMLButtonElement>('[data-window="d3m"]')!;
+    const d3m = document.querySelector<HTMLButtonElement>(
+      '[data-window="d3m"]'
+    )!;
     expect(document.activeElement).toBe(d3m);
     expect(d3m.getAttribute("aria-selected")).toBe("true");
     expect(d3m.tabIndex).toBe(0);
@@ -245,68 +274,198 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     teardown();
   });
 
-  it("filters by search and difficulty, and sorts", async () => {
+  it("filters by search, difficulty and topic, with removable chips", async () => {
     loadFixture();
     const teardown = await mount();
     const search = document.querySelector<HTMLInputElement>(".lce-search")!;
-    const difficulty = document.querySelector<HTMLSelectElement>(
-      '[aria-label="Difficulty"]'
-    )!;
-    const sort = document.querySelector<HTMLSelectElement>(
-      '[aria-label="Sort"]'
-    )!;
-
-    (document.querySelector('[data-window="all"]') as HTMLButtonElement).click();
+    const summary = () =>
+      document.querySelector(".lce-summary__count")!.textContent;
+    const chipLabels = () =>
+      [...document.querySelectorAll(".lce-filter-chip")].map(
+        (chip) => chip.textContent
+      );
+    click('[data-window="all"]');
+    expect(summary()).toBe("3 questions");
 
     search.value = "median";
     search.dispatchEvent(new Event("input", { bubbles: true }));
     expect(rows()).toHaveLength(1);
     expect(rows()[0]!.textContent).toContain("Median of Two Sorted Arrays");
-
+    expect(summary()).toBe("1 of 3 questions");
     search.value = "";
     search.dispatchEvent(new Event("input", { bubbles: true }));
-    difficulty.value = "Medium";
-    difficulty.dispatchEvent(new Event("change", { bubbles: true }));
-    expect(rows()).toHaveLength(1);
-    expect(rows()[0]!.textContent).toContain("Add Two Numbers");
 
-    difficulty.value = "all";
-    difficulty.dispatchEvent(new Event("change", { bubbles: true }));
-    sort.value = "title";
-    sort.dispatchEvent(new Event("change", { bubbles: true }));
-    expect(rows()[0]!.textContent).toContain("Add Two Numbers");
-    expect(rows()[2]!.textContent).toContain("Two Sum");
+    click('[data-tool="filter"]');
+    const menu = document.querySelector<HTMLElement>("#lce-filter-menu")!;
+    expect(menu.hidden).toBe(false);
+    // Facet counts for the active window.
+    expect(
+      [...menu.querySelectorAll(".lce-pill")].map((pill) => pill.textContent)
+    ).toEqual(["Easy1", "Medium1", "Hard1"]);
+    expect(
+      [...menu.querySelectorAll(".lce-filter__topic")].map(
+        (topic) => topic.textContent
+      )
+    ).toEqual(["Array2", "Hash Table1", "Linked List1", "Math1"]);
+
+    click('.lce-pill[data-difficulty="Medium"]');
+    click('.lce-pill[data-difficulty="Hard"]');
+    expect(
+      rows().map((row) => row.querySelector(".lce-row__title")!.textContent)
+    ).toEqual(["Add Two Numbers", "Median of Two Sorted Arrays"]);
+    expect(
+      menu
+        .querySelector('.lce-pill[data-difficulty="Hard"]')!
+        .getAttribute("aria-pressed")
+    ).toBe("true");
+
+    const array = menu.querySelector<HTMLInputElement>('[data-topic="0"]')!;
+    array.click();
+    expect(rows()).toHaveLength(1);
+    expect(rows()[0]!.textContent).toContain("Median of Two Sorted Arrays");
+    expect(chipLabels()).toEqual(["Medium", "Hard", "Array"]);
+    expect(
+      document.querySelector('[data-tool="filter"] .lce-tool__badge')!
+        .textContent
+    ).toBe("3");
+
+    // Removing a chip updates the open menu in place.
+    document
+      .querySelectorAll<HTMLButtonElement>(".lce-filter-chip")[2]!
+      .click();
+    expect(array.checked).toBe(false);
+    expect(rows()).toHaveLength(2);
+
+    click(".lce-summary__chips .lce-link");
+    expect(chipLabels()).toEqual([]);
+    expect(rows()).toHaveLength(3);
     teardown();
   });
 
-  it("sorts by clicking column headers and keeps the select in sync", async () => {
+  it("narrows the topic list with its search box", async () => {
     loadFixture();
     const teardown = await mount();
-    (document.querySelector('[data-window="all"]') as HTMLButtonElement).click();
-
-    const sort = document.querySelector<HTMLSelectElement>(
-      '[aria-label="Sort"]'
+    click('[data-window="all"]');
+    click('[data-tool="filter"]');
+    const topicSearch = document.querySelector<HTMLInputElement>(
+      ".lce-filter__search"
     )!;
-    const difficultyHeader = document.querySelector<HTMLButtonElement>(
-      '[data-sort="difficulty"]'
-    )!;
-    difficultyHeader.click();
+    topicSearch.value = "has";
+    topicSearch.dispatchEvent(new Event("input", { bubbles: true }));
+    const visible = [
+      ...document.querySelectorAll<HTMLElement>(".lce-filter__topic"),
+    ].filter((topic) => !topic.hidden);
+    expect(visible.map((topic) => topic.dataset.name)).toEqual(["hash table"]);
+    teardown();
+  });
 
-    expect(sort.value).toBe("difficulty");
+  it("toggles direction on repeated header clicks", async () => {
+    loadFixture();
+    const teardown = await mount();
+    click('[data-window="all"]');
+    const titles = () =>
+      rows().map((row) => row.querySelector(".lce-row__title")!.textContent);
+    const header = (key: string) =>
+      document.querySelector<HTMLElement>(`.lce-sort[data-sort="${key}"]`)!
+        .parentElement!;
+
+    // Default: frequency, highest first.
+    expect(header("frequency").getAttribute("aria-sort")).toBe("descending");
+    click('.lce-sort[data-sort="frequency"]');
+    expect(header("frequency").getAttribute("aria-sort")).toBe("ascending");
+    expect(titles()[0]).toBe("Median of Two Sorted Arrays");
+
+    click('.lce-sort[data-sort="title"]');
+    expect(header("title").getAttribute("aria-sort")).toBe("ascending");
+    expect(header("frequency").getAttribute("aria-sort")).toBe("none");
+    expect(titles()).toEqual([
+      "Add Two Numbers",
+      "Median of Two Sorted Arrays",
+      "Two Sum",
+    ]);
+    click('.lce-sort[data-sort="title"]');
+    expect(header("title").getAttribute("aria-sort")).toBe("descending");
+    expect(titles()[0]).toBe("Two Sum");
+    expect(document.querySelector('[data-tool="sort"]')!.textContent).toBe(
+      "Title ↓"
+    );
+    teardown();
+  });
+
+  it("sorts from the sort menu and closes it", async () => {
+    loadFixture();
+    const teardown = await mount();
+    click('[data-window="all"]');
+    const menu = document.querySelector<HTMLElement>("#lce-sort-menu")!;
+    const trigger = document.querySelector<HTMLElement>('[data-tool="sort"]')!;
+
+    trigger.click();
+    expect(menu.hidden).toBe(false);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    click('.lce-menu__item[data-sort="acceptance"]');
+    expect(menu.hidden).toBe(true);
+    expect(trigger.textContent).toBe("Acceptance ↓");
+    expect(document.activeElement).toBe(trigger);
+
+    trigger.click();
     expect(
-      rows().map((row) => row.querySelector(".lce-row__diff")?.textContent)
-    ).toEqual(["Easy", "Medium", "Hard"]);
-    expect(difficultyHeader.getAttribute("aria-pressed")).toBe("true");
-    expect(difficultyHeader.dataset.direction).toBe("ascending");
+      menu
+        .querySelector('[data-sort="acceptance"]')!
+        .getAttribute("aria-checked")
+    ).toBe("true");
+    click('.lce-menu__item[data-direction="ascending"]');
+    expect(trigger.textContent).toBe("Acceptance ↑");
+    expect(rows()[0]!.querySelector(".lce-row__title")!.textContent).toBe(
+      "Median of Two Sorted Arrays"
+    );
+    teardown();
+  });
 
-    const titleHeader = document.querySelector<HTMLButtonElement>(
-      '[data-sort="title"]'
-    )!;
-    titleHeader.click();
-    expect(rows()[0]!.textContent).toContain("Add Two Numbers");
-    expect(titleHeader.dataset.direction).toBe("ascending");
-    expect(difficultyHeader.getAttribute("aria-pressed")).toBe("false");
-    expect(sort.value).toBe("title");
+  it("closes menus on Escape and outside clicks, one open at a time", async () => {
+    loadFixture();
+    const teardown = await mount();
+    const sortMenu = document.querySelector<HTMLElement>("#lce-sort-menu")!;
+    const filterMenu = document.querySelector<HTMLElement>("#lce-filter-menu")!;
+    const sortTrigger =
+      document.querySelector<HTMLElement>('[data-tool="sort"]')!;
+
+    sortTrigger.click();
+    click('[data-tool="filter"]');
+    expect(sortMenu.hidden).toBe(true);
+    expect(filterMenu.hidden).toBe(false);
+
+    filterMenu.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true })
+    );
+    expect(filterMenu.hidden).toBe(true);
+    expect(document.activeElement).toBe(
+      document.querySelector('[data-tool="filter"]')
+    );
+
+    sortTrigger.click();
+    document.body.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true })
+    );
+    expect(sortMenu.hidden).toBe(true);
+    teardown();
+  });
+
+  it("offers to clear filters when they exclude every question", async () => {
+    loadFixture();
+    const teardown = await mount();
+    const search = document.querySelector<HTMLInputElement>(".lce-search")!;
+    search.value = "no such problem";
+    search.dispatchEvent(new Event("input", { bubbles: true }));
+
+    const empty = document.querySelector<HTMLElement>(".lce-company__empty")!;
+    expect(empty.hidden).toBe(false);
+    expect(empty.textContent).toContain("No questions match your filters.");
+    expect(
+      document.querySelector<HTMLElement>(".lce-company__table")!.hidden
+    ).toBe(true);
+    click(".lce-company__empty .lce-link");
+    expect(search.value).toBe("");
+    expect(rows()).toHaveLength(2);
     teardown();
   });
 
@@ -331,14 +490,16 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
 
     const empty = document.querySelector<HTMLElement>(".lce-company__empty")!;
     expect(empty.hidden).toBe(false);
-    expect(empty.textContent).toBe("No community data for this company yet.");
+    expect(empty.firstChild?.textContent).toBe(
+      "No community data for this company yet."
+    );
     expect(document.body.textContent).toContain("Not tracked");
     teardown();
   });
 
   it("no-ops when the wall is absent (premium/native list)", async () => {
     loadFixture();
-    document.querySelector('[class*="company_subscribeContainer"]')!.remove();
+    document.querySelector(COMPANY_WALL)!.remove();
     const teardown = mountCompanyPage({
       url: new URL("https://leetcode.com/company/google/"),
       data: fakeData(),
@@ -358,9 +519,7 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
     expect(discuss).not.toBeNull();
     // Simulate the previous company still rendered while the next one loads.
     discuss.setAttribute("href", "/discuss/topic/meta/");
-    const wall = document.querySelector<HTMLElement>(
-      '[class*="company_subscribeContainer"]'
-    )!;
+    const wall = document.querySelector<HTMLElement>(COMPANY_WALL)!;
 
     let resolveIndex!: (value: Index) => void;
     let resolveShard!: (value: CompanyShard | null) => void;
@@ -422,9 +581,7 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
       expect(document.querySelector(".lce-company")).not.toBeNull()
     );
 
-    const liveWall = freshWrapper.querySelector<HTMLElement>(
-      '[class*="company_subscribeContainer"]'
-    )!;
+    const liveWall = freshWrapper.querySelector<HTMLElement>(COMPANY_WALL)!;
     expect(liveWall.style.display).toBe("none");
     expect(freshWrapper.style.display).toBe("");
     const toolbar = target.children[0] as HTMLElement;
@@ -438,9 +595,7 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
 
   it("restores the native wall on teardown", async () => {
     loadFixture();
-    const wall = document.querySelector<HTMLElement>(
-      '[class*="company_subscribeContainer"]'
-    )!;
+    const wall = document.querySelector<HTMLElement>(COMPANY_WALL)!;
     const teardown = await mount();
 
     expect(wall.style.display).toBe("none");
@@ -452,9 +607,7 @@ describe.skipIf(!hasCompany)("mountCompanyPage", () => {
 
   it("cancels an in-flight enhance pass on immediate teardown", async () => {
     loadFixture();
-    const wall = document.querySelector<HTMLElement>(
-      '[class*="company_subscribeContainer"]'
-    )!;
+    const wall = document.querySelector<HTMLElement>(COMPANY_WALL)!;
     const teardown = mountCompanyPage({
       url: new URL("https://leetcode.com/company/google/"),
       data: fakeData(),

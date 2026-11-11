@@ -39,7 +39,12 @@ const GOOGLE = {
   all: [["two-sum", 87]],
 };
 
-const TWO_SUM_SHARD = { "two-sum": [[0, 18], [1, 1]] };
+const TWO_SUM_SHARD = {
+  "two-sum": [
+    [0, 18],
+    [1, 1],
+  ],
+};
 
 const FILES = {
   "data/meta.json": META,
@@ -86,13 +91,15 @@ describe("createDataLayer", () => {
 
     await expect(layer.meta()).rejects.toBeInstanceOf(DataUnavailable);
     await expect(layer.index()).rejects.toBeInstanceOf(DataUnavailable);
-    await expect(layer.company("google")).rejects.toBeInstanceOf(DataUnavailable);
-    await expect(
-      layer.companiesForProblem("two-sum")
-    ).rejects.toBeInstanceOf(DataUnavailable);
-    await expect(
-      layer.derivedFrequency("two-sum")
-    ).rejects.toBeInstanceOf(DataUnavailable);
+    await expect(layer.company("google")).rejects.toBeInstanceOf(
+      DataUnavailable
+    );
+    await expect(layer.companiesForProblem("two-sum")).rejects.toBeInstanceOf(
+      DataUnavailable
+    );
+    await expect(layer.derivedFrequency("two-sum")).rejects.toBeInstanceOf(
+      DataUnavailable
+    );
   });
 
   it("rejects with DataUnavailable when meta.json has an invalid shape", async () => {
@@ -133,7 +140,9 @@ describe("createDataLayer", () => {
       expected
     );
 
-    expect(loader.calls.filter((p) => p === "data/problems/tw.json")).toHaveLength(1);
+    expect(
+      loader.calls.filter((p) => p === "data/problems/tw.json")
+    ).toHaveLength(1);
   });
 
   it("derivedFrequency returns the index freqScore or undefined", async () => {
@@ -142,5 +151,24 @@ describe("createDataLayer", () => {
 
     await expect(layer.derivedFrequency("two-sum")).resolves.toBe(87);
     await expect(layer.derivedFrequency("unknown")).resolves.toBeUndefined();
+  });
+
+  it("loads topic names (memoized) and treats a malformed file as unavailable", async () => {
+    const loader = fixtureLoader({
+      ...FILES,
+      "data/topics.json": ["Array", "Hash Table"],
+    });
+    const layer = createDataLayer({ loadJson: loader.loadJson });
+    await expect(layer.topics()).resolves.toEqual(["Array", "Hash Table"]);
+    await layer.topics();
+    expect(loader.calls.filter((c) => c === "data/topics.json")).toHaveLength(
+      1
+    );
+
+    const broken = createDataLayer({
+      loadJson: fixtureLoader({ ...FILES, "data/topics.json": { nope: 1 } })
+        .loadJson,
+    });
+    await expect(broken.topics()).rejects.toBeInstanceOf(DataUnavailable);
   });
 });

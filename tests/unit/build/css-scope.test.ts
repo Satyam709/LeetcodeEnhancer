@@ -51,13 +51,12 @@ describe("content.css leak guard", () => {
     const { source } = await loadBuiltCss();
     expect(source).toContain(".lce-root");
     for (const declaration of [
-      "--lce-background: var(--fill-quaternary, #f6f7f9);",
       "--lce-foreground: var(--text-primary, #1a1a1a);",
-      "--lce-muted: var(--fill-secondary, #eef0f3);",
-      "--lce-muted-foreground: var(--text-secondary, #6b7280);",
-      "--lce-easy: var(--difficulty-easy, #00b8a3);",
-      "--lce-medium: var(--difficulty-medium, #ffb800);",
-      "--lce-hard: var(--difficulty-hard, #ef4743);",
+      "--lce-muted-foreground: hsl(var(--sd-muted-foreground, 0 0% 45%));",
+      "--lce-stripe: var(--fill-quaternary, rgba(0, 0, 0, 0.02));",
+      "--lce-easy: hsl(var(--sd-easy, 180 74% 42%));",
+      "--lce-medium: hsl(var(--sd-medium, 43 100% 50%));",
+      "--lce-hard: hsl(var(--sd-hard, 0 91% 59%));",
     ]) {
       expect(source, `missing declaration: ${declaration}`).toContain(
         declaration

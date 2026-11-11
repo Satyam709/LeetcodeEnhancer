@@ -1,9 +1,23 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DataLayer } from "../../../src/lib/data/loader";
 import type { Index } from "../../../src/lib/data/types";
-import { mountProblemCompanies } from "../../../src/views/problem-companies";
-import { findLockedCompaniesChip } from "../../../src/lib/dom/selectors";
+import {
+  groupCompanies,
+  mountProblemCompanies as rawMount,
+} from "../../../src/views/problem-companies";
+import {
+  findLockedCompaniesAccordion,
+  findLockedCompaniesChip,
+} from "../../../src/lib/dom/selectors";
 import { fixtureDocument, hasFixture } from "../../helpers/dom-fixtures";
+
+/** Every mount is torn down after each test, even when an assertion throws. */
+const live: (() => void)[] = [];
+const mountProblemCompanies: typeof rawMount = (deps) => {
+  const teardown = rawMount(deps);
+  live.push(teardown);
+  return teardown;
+};
 
 const hasProblem = hasFixture("problem-two-sum");
 const PROBLEM_BODY = hasProblem
@@ -41,6 +55,7 @@ function fakeData(
     company: async () => null,
     companiesForProblem: async () => entries,
     derivedFrequency: async () => undefined,
+    topics: async () => [],
   };
 }
 
@@ -55,7 +70,7 @@ async function mount(data: DataLayer, timeoutMs = 1000): Promise<() => void> {
     timeoutMs,
   });
   await vi.waitFor(() =>
-    expect(document.querySelector(".lce-chip--companies")).not.toBeNull()
+    expect(document.querySelector(".lce-acc")).not.toBeNull()
   );
   return teardown;
 }
@@ -67,81 +82,164 @@ const ENTRIES: { companyIdx: number; windows: WindowKey[] }[] = [
 ];
 
 afterEach(() => {
+  for (const teardown of live.splice(0)) teardown();
   document.body.innerHTML = "";
   vi.restoreAllMocks();
 });
 
+/** The native nodes we hide: the locked chip and the locked accordion item. */
+function lockedNodes(): { chip: HTMLElement; item: HTMLElement } {
+  const chip = [
+    ...document.querySelectorAll<HTMLElement>("div.flex.gap-1 > div"),
+  ].find(
+    (node) => node.querySelector('img[alt="premium lock icon"]') !== null
+  )!;
+  const item = [
+    ...document.querySelectorAll<HTMLElement>('[class*="premium-text"]'),
+  ]
+    .find((node) => node.closest(".group.cursor-pointer") !== null)!
+    .closest(".group.cursor-pointer")!.parentElement!.parentElement!;
+  return { chip, item };
+}
+
+const nextFrame = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+describe("groupCompanies", () => {
+  it("files each company once under its most recent window, sorted by name", () => {
+    const groups = groupCompanies(
+      [
+        { companyIdx: 0, windows: ["d30", "d3m", "all"] },
+        { companyIdx: 1, windows: ["g6m", "all"] },
+        { companyIdx: 2, windows: ["d6m"] },
+        { companyIdx: 0, windows: ["all"] },
+        { companyIdx: 9, windows: ["d30"] },
+      ],
+      index
+    );
+    expect(groups.total).toBe(3);
+    expect(groups.recent.map((e) => [e.company.name, e.window])).toEqual([
+      ["Amazon", "d6m"],
+      ["Google", "d30"],
+    ]);
+    expect(groups.earlier.map((e) => [e.company.name, e.window])).toEqual([
+      ["Meta", "g6m"],
+    ]);
+  });
+});
+
+describe.skipIf(!hasProblem)("problem selectors (accordion)", () => {
+  it("finds the locked Companies accordion item, not the chip", () => {
+    loadFixture();
+    const found = findLockedCompaniesAccordion(document);
+    expect(found).not.toBeNull();
+    expect(found!.header.textContent).toContain("Companies");
+    expect(found!.item.previousElementSibling?.tagName).toBe("HR");
+  });
+});
+
 describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
-  it("hides the locked native chip and replaces it with a working one", async () => {
+  it("replaces the locked chip with a native-looking working chip", async () => {
     loadFixture();
     const teardown = await mount(fakeData(ENTRIES));
 
-    const chip = document.querySelector(".lce-chip--companies")!;
+    const chip = document.querySelector<HTMLButtonElement>(".lce-chip")!;
     expect(chip.tagName).toBe("BUTTON");
     expect(chip.classList.contains("lce-root")).toBe(true);
     expect(chip.classList.contains("rounded-full")).toBe(true);
     expect(chip.classList.contains("bg-fill-secondary")).toBe(true);
-    expect(chip.textContent).toContain("Companies");
-    expect(chip.textContent).toContain("3");
-    expect(chip.getAttribute("aria-expanded")).toBe("false");
+    expect(chip.textContent).toBe("Companies");
 
-    const locked = [...document.querySelectorAll<HTMLElement>("div.flex.gap-1 > div")].find(
-      (node) => node.querySelector('img[alt="premium lock icon"]') !== null
-    )!;
+    const { chip: locked } = lockedNodes();
     expect(locked.style.display).toBe("none");
+    expect(chip.nextElementSibling).toBe(locked);
     teardown();
   });
 
-  it("toggles a panel grouped by recency with company links", async () => {
+  it("replaces the locked accordion item with a working one grouped by recency", async () => {
     loadFixture();
-    const teardown = await mount(fakeData([...ENTRIES]));
+    const teardown = await mount(fakeData(ENTRIES));
 
-    const chip = document.querySelector<HTMLButtonElement>(
-      ".lce-chip--companies"
+    const { item } = lockedNodes();
+    expect(item.style.display).toBe("none");
+    const acc = document.querySelector<HTMLElement>(".lce-acc")!;
+    expect(item.nextElementSibling).toBe(acc);
+    expect(acc.querySelector(".lce-acc__count")!.textContent).toBe("3");
+
+    const header = acc.querySelector<HTMLButtonElement>(".lce-acc__header")!;
+    const body = acc.querySelector<HTMLElement>(".lce-acc__body")!;
+    expect(body.hidden).toBe(true);
+    header.click();
+    expect(body.hidden).toBe(false);
+    expect(header.getAttribute("aria-expanded")).toBe("true");
+
+    const groups = [...acc.querySelectorAll(".lce-acc__group")].map(
+      (group) => ({
+        label: group.querySelector(".lce-acc__label")!.firstChild!.textContent,
+        tags: [...group.querySelectorAll("a")].map((a) => a.textContent),
+      })
+    );
+    expect(groups).toEqual([
+      { label: "Last 6 months", tags: ["Amazon", "Google"] },
+      { label: "Earlier", tags: ["Meta"] },
+    ]);
+
+    const google = [...acc.querySelectorAll("a")].find(
+      (a) => a.textContent === "Google"
     )!;
-    const panel = document.querySelector<HTMLElement>(".lce-panel")!;
-    expect(panel.hidden).toBe(true);
-    expect(panel.classList.contains("lce-root")).toBe(true);
+    expect(google.getAttribute("href")).toBe(
+      "/company/google/?favoriteSlug=google-thirty-days"
+    );
+    expect(google.getAttribute("target")).toBe("_blank");
+    expect(google.title).toBe("Google: asked last 30 days");
+    expect(google.classList.contains("bg-fill-secondary")).toBe(true);
 
-    chip.click();
-    expect(panel.hidden).toBe(false);
-    expect(chip.getAttribute("aria-expanded")).toBe("true");
-
-    const sections = [...panel.querySelectorAll(".lce-panel__section")];
-    expect(sections.map((s) => s.querySelector(".lce-panel__title")?.textContent)).toEqual([
-      "Last 6 months2",
-      "More than 6 months1",
-      "All time2",
-    ]);
-
-    const lastSix = [...sections[0]!.querySelectorAll("a")].map((a) => ({
-      text: a.textContent,
-      href: a.getAttribute("href"),
-    }));
-    expect(lastSix).toEqual([
-      {
-        text: "Amazon",
-        href: "/company/amazon/?favoriteSlug=amazon-thirty-days",
-      },
-      {
-        text: "Google",
-        href: "/company/google/?favoriteSlug=google-thirty-days",
-      },
-    ]);
-    expect(
-      sections[0]!.querySelector("a")!.classList.contains("bg-fill-secondary")
-    ).toBe(true);
-
-    const moreThanSix = sections[1]!.querySelectorAll("a");
-    expect([...moreThanSix].map((a) => a.textContent)).toEqual(["Meta"]);
-
-    chip.click();
-    expect(panel.hidden).toBe(true);
-    expect(chip.getAttribute("aria-expanded")).toBe("false");
+    header.click();
+    expect(body.hidden).toBe(true);
     teardown();
   });
 
-  it("leaves the native chip alone when the problem has no company data", async () => {
+  it("opens the accordion and scrolls to it when the chip is clicked", async () => {
+    loadFixture();
+    const scroll = vi.fn();
+    Element.prototype.scrollIntoView = scroll;
+    const teardown = await mount(fakeData(ENTRIES));
+
+    document.querySelector<HTMLButtonElement>(".lce-chip")!.click();
+    const acc = document.querySelector<HTMLElement>(".lce-acc")!;
+    expect(acc.querySelector<HTMLElement>(".lce-acc__body")!.hidden).toBe(
+      false
+    );
+    expect(scroll).toHaveBeenCalledTimes(1);
+    expect(scroll.mock.contexts[0]).toBe(acc);
+    teardown();
+  });
+
+  it("collapses long groups behind a Show all toggle", async () => {
+    loadFixture();
+    const many: Index = {
+      ...index,
+      companies: Array.from({ length: 40 }, (_, i) => ({
+        slug: `c${i}`,
+        name: `Company ${String(i).padStart(2, "0")}`,
+        counts: [1, 1, 1, 1, 1],
+      })),
+    };
+    const data = fakeData(
+      many.companies.map((_, i) => ({ companyIdx: i, windows: ["d30"] }))
+    );
+    data.index = async () => many;
+    const teardown = await mount(data);
+
+    const group = document.querySelector(".lce-acc__group")!;
+    const visible = () => group.querySelectorAll("a:not([hidden])").length;
+    expect(visible()).toBe(24);
+    group.querySelector<HTMLButtonElement>(".lce-acc__more")!.click();
+    expect(visible()).toBe(40);
+    expect(group.querySelector(".lce-acc__more")).toBeNull();
+    teardown();
+  });
+
+  it("leaves the native UI alone when the problem has no company data", async () => {
     loadFixture();
     const teardown = mountProblemCompanies({
       url: new URL("https://leetcode.com/problems/two-sum/"),
@@ -150,20 +248,22 @@ describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
     });
     await new Promise((resolve) => setTimeout(resolve, 120));
 
-    expect(document.querySelector(".lce-chip--companies")).toBeNull();
-    expect(document.querySelector(".lce-panel")).toBeNull();
-    const locked = [...document.querySelectorAll<HTMLElement>("div.flex.gap-1 > div")].find(
-      (node) => node.querySelector('img[alt="premium lock icon"]') !== null
-    )!;
-    expect(locked.style.display).not.toBe("none");
+    expect(document.querySelector(".lce-chip")).toBeNull();
+    expect(document.querySelector(".lce-acc")).toBeNull();
+    const { chip, item } = lockedNodes();
+    expect(chip.style.display).toBe("");
+    expect(item.style.display).toBe("");
     teardown();
   });
 
-  it("no-ops when the native chip is not premium-locked", async () => {
+  it("no-ops when nothing is premium-locked", async () => {
     loadFixture();
     document
       .querySelectorAll('img[alt="premium lock icon"]')
       .forEach((img) => img.remove());
+    document.querySelectorAll('[class*="premium-text"]').forEach((label) => {
+      label.className = "";
+    });
     const teardown = mountProblemCompanies({
       url: new URL("https://leetcode.com/problems/two-sum/"),
       data: fakeData([...ENTRIES]),
@@ -171,8 +271,8 @@ describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
     });
     await new Promise((resolve) => setTimeout(resolve, 120));
 
-    expect(document.querySelector(".lce-chip--companies")).toBeNull();
-    expect(document.querySelector(".lce-panel")).toBeNull();
+    expect(document.querySelector(".lce-chip")).toBeNull();
+    expect(document.querySelector(".lce-acc")).toBeNull();
     teardown();
   });
 
@@ -184,78 +284,85 @@ describe.skipIf(!hasProblem)("mountProblemCompanies", () => {
     // Simulate the previous problem still rendered while the next one loads.
     titleLink.setAttribute("href", "/problems/add-two-numbers/");
 
-    let resolveEntries!: (value: typeof ENTRIES) => void;
-    let resolveIndex!: (value: Index) => void;
-    const data = fakeData([]);
-    data.companiesForProblem = () =>
-      new Promise((resolve) => (resolveEntries = resolve));
-    data.index = () => new Promise((resolve) => (resolveIndex = resolve));
-
     const teardown = mountProblemCompanies({
       url: new URL("https://leetcode.com/problems/two-sum/"),
-      data,
+      data: fakeData(ENTRIES),
       timeoutMs: 1000,
     });
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    resolveEntries(ENTRIES);
-    resolveIndex(index);
-
     await new Promise((resolve) => setTimeout(resolve, 60));
-    expect(document.querySelector(".lce-chip--companies")).toBeNull();
+    expect(document.querySelector(".lce-acc")).toBeNull();
 
     titleLink.setAttribute("href", "/problems/two-sum/");
     await vi.waitFor(() =>
-      expect(document.querySelector(".lce-chip--companies")).not.toBeNull()
+      expect(document.querySelector(".lce-acc")).not.toBeNull()
     );
     teardown();
   });
 
-  it("re-finds the locked chip after data resolves (chip replaced mid-flight)", async () => {
+  it("re-attaches when React replaces the locked chip after mount", async () => {
     loadFixture();
-    let resolveEntries!: (value: typeof ENTRIES) => void;
-    let resolveIndex!: (value: Index) => void;
-    const data = fakeData([]);
-    data.companiesForProblem = () =>
-      new Promise((resolve) => (resolveEntries = resolve));
-    data.index = () => new Promise((resolve) => (resolveIndex = resolve));
+    const teardown = await mount(fakeData(ENTRIES));
 
-    const teardown = mountProblemCompanies({
-      url: new URL("https://leetcode.com/problems/two-sum/"),
-      data,
-      timeoutMs: 1000,
-    });
-    await new Promise((resolve) => setTimeout(resolve, 20));
-
-    const located = findLockedCompaniesChip(document);
-    expect(located).not.toBeNull();
-    const { chip: stale, row } = located!;
+    const { row } = { row: lockedNodes().chip.parentElement! };
+    const stale = lockedNodes().chip;
     const fresh = stale.cloneNode(true) as HTMLElement;
+    fresh.style.display = "";
     row.replaceChild(fresh, stale);
-
-    resolveEntries(ENTRIES);
-    resolveIndex(index);
-    await vi.waitFor(() =>
-      expect(document.querySelector(".lce-chip--companies")).not.toBeNull()
-    );
+    await nextFrame();
 
     expect(fresh.style.display).toBe("none");
-    expect(stale.style.display).toBe("");
+    expect(fresh.previousElementSibling).toBe(
+      document.querySelector(".lce-chip")
+    );
+    expect(document.querySelectorAll(".lce-chip")).toHaveLength(1);
     teardown();
     expect(fresh.style.display).toBe("");
   });
 
-  it("restores the native chip and removes its UI on teardown", async () => {
+  it("re-attaches when React re-renders the accordion list", async () => {
+    loadFixture();
+    const teardown = await mount(fakeData(ENTRIES));
+    const acc = document.querySelector(".lce-acc")!;
+    acc.querySelector<HTMLButtonElement>(".lce-acc__header")!.click();
+
+    // React rebuilds the whole list: our item is dropped, a fresh locked item appears.
+    const { item } = lockedNodes();
+    const list = item.parentElement!;
+    const fresh = item.cloneNode(true) as HTMLElement;
+    fresh.style.display = "";
+    acc.remove();
+    list.replaceChild(fresh, item);
+    await nextFrame();
+
+    expect(fresh.style.display).toBe("none");
+    expect(fresh.nextElementSibling).toBe(acc);
+    // Same node, so the open state survives.
+    expect(acc.classList.contains("is-open")).toBe(true);
+    expect(document.querySelectorAll(".lce-acc")).toHaveLength(1);
+    teardown();
+  });
+
+  it("re-hides a native node React shows again", async () => {
+    loadFixture();
+    const teardown = await mount(fakeData(ENTRIES));
+    const { item } = lockedNodes();
+    item.style.display = "";
+    // A sibling re-render is what wakes the watcher in the real page.
+    item.parentElement!.append(document.createElement("div"));
+    await nextFrame();
+    expect(item.style.display).toBe("none");
+    teardown();
+  });
+
+  it("restores the native UI and removes ours on teardown", async () => {
     loadFixture();
     const teardown = await mount(fakeData([...ENTRIES]));
-
-    expect(document.querySelector(".lce-chip--companies")).not.toBeNull();
     teardown();
 
-    expect(document.querySelector(".lce-chip--companies")).toBeNull();
-    expect(document.querySelector(".lce-panel")).toBeNull();
-    const locked = [...document.querySelectorAll<HTMLElement>("div.flex.gap-1 > div")].find(
-      (node) => node.querySelector('img[alt="premium lock icon"]') !== null
-    )!;
-    expect(locked.style.display).toBe("");
+    expect(document.querySelector(".lce-chip")).toBeNull();
+    expect(document.querySelector(".lce-acc")).toBeNull();
+    const { chip, item } = lockedNodes();
+    expect(chip.style.display).toBe("");
+    expect(item.style.display).toBe("");
   });
 });

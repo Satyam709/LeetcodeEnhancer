@@ -10,7 +10,7 @@
     <main class="popup">
       <header class="popup__header">
         <h1>LeetCode Enhancer</h1>
-        <span class="popup__badge">v3</span>
+        <span id="version" class="popup__badge"></span>
       </header>
 
       <label class="toggle" for="highlight">
@@ -22,10 +22,10 @@
       </label>
 
       <p id="status" class="status" role="status">Normal extension look.</p>
-      <p class="note">
-        Community company data is bundled with the extension. No telemetry, no
-        network requests.
+      <p id="data" class="note">
+        Community company data is bundled with the extension.
       </p>
+      <p class="note">No telemetry, no network requests.</p>
     </main>
     <script src="popup.js"></script>
   </body>

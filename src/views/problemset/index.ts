@@ -4,6 +4,7 @@ import type { Index } from "../../lib/data/types";
 import { debugLog } from "../../lib/debug";
 import { el } from "../../lib/dom/html";
 import { waitFor } from "../../lib/dom/readiness";
+import { watchDom } from "../../lib/dom/watch";
 import {
   findLockedFrequencySlot,
   problemsetRows,
@@ -15,13 +16,10 @@ export interface ProblemsetDeps {
   timeoutMs?: number;
 }
 
-/** Coalesce scroll/React churn into at most one scan per window. */
-const SCAN_DELAY_MS = 50;
-
 interface CellState {
   cell: HTMLElement;
-  slug: string;
-  score: number;
+  /** The row's href when enhanced; a recycled row points somewhere else. */
+  href: string | null;
   /** Native children hidden for this cell, restored if the row is re-rendered. */
   hidden: HTMLElement[];
 }
@@ -30,10 +28,11 @@ interface CellState {
  * `/problemset` and `/problem-list/*` — fill the premium-locked frequency cell
  * with our derived score. Rows without data keep LeetCode's native widget.
  *
- * LeetCode's list is React-managed and re-renders rows while scrolling, so the
- * view keeps a body-level child-list observer plus a capture-phase scroll
- * listener. Each pass re-checks every row: a row that lost our cell (or was
- * recycled for another problem) is enhanced again.
+ * LeetCode's list is React-managed and re-renders every row when a new page of
+ * results loads. `watchDom` re-applies before the next paint, so the locked
+ * native widget never flashes. Each pass re-checks every row: a row that lost
+ * our cell, re-showed a native child, or was recycled for another problem is
+ * enhanced again.
  */
 export function mountProblemsetFrequency(deps: ProblemsetDeps): () => void {
   const controller = new AbortController();
@@ -110,23 +109,26 @@ async function enhance(
     states.delete(row);
   };
 
-  const ensureRow = (row: Element): void => {
-    const slug = rowSlug(row);
-    if (slug === null) return;
-
-    const score = index.problems[slug]?.freqScore;
-    const state = states.get(row);
-    if (
-      state !== undefined &&
-      state.slug === slug &&
-      state.score === score &&
-      state.cell.isConnected &&
-      row.contains(state.cell)
-    ) {
-      return;
+  /** Still enhanced exactly as recorded: same problem, our cell is the only visible child. */
+  const intact = (row: Element, state: CellState): boolean => {
+    if (state.href !== row.getAttribute("href")) return false;
+    const slot = state.cell.parentElement;
+    if (slot === null || !row.contains(slot)) return false;
+    for (const child of slot.children) {
+      if (child === state.cell) continue;
+      if ((child as HTMLElement).style.display !== "none") return false;
     }
+    return true;
+  };
+
+  const ensureRow = (row: Element): void => {
+    const state = states.get(row);
+    if (state !== undefined && intact(row, state)) return;
 
     clearRow(row);
+    const slug = rowSlug(row);
+    if (slug === null) return;
+    const score = index.problems[slug]?.freqScore;
     if (typeof score !== "number" || !Number.isFinite(score)) return;
 
     const found = findLockedFrequencySlot(row);
@@ -142,7 +144,7 @@ async function enhance(
     const cell = frequencyCell(score);
     found.slot.append(cell);
     cells.add(cell);
-    states.set(row, { cell, slug, score, hidden });
+    states.set(row, { cell, href: row.getAttribute("href"), hidden });
   };
 
   const apply = (): void => {
@@ -151,25 +153,10 @@ async function enhance(
   };
 
   apply();
-
-  let timer: ReturnType<typeof setTimeout> | null = null;
-  const schedule = (): void => {
-    if (signal.aborted || timer !== null) return;
-    timer = setTimeout(() => {
-      timer = null;
-      apply();
-    }, SCAN_DELAY_MS);
-  };
-
-  const observer = new MutationObserver(schedule);
-  observer.observe(document.body, { childList: true, subtree: true });
-  document.addEventListener("scroll", schedule, { capture: true, passive: true });
+  const stopWatching = watchDom(apply, { signal });
 
   setDispose(() => {
-    observer.disconnect();
-    document.removeEventListener("scroll", schedule, { capture: true });
-    if (timer !== null) clearTimeout(timer);
-
+    stopWatching();
     for (const cell of cells) cell.remove();
     cells.clear();
     for (const node of hiddenNodes) {

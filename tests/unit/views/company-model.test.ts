@@ -3,6 +3,9 @@ import type { CompanyShard, Index } from "../../../src/lib/data/types";
 import {
   WINDOW_TABS,
   buildRows,
+  defaultDirection,
+  facets,
+  windowRows,
   formatAcceptance,
   formatCount,
   formatUpdated,
@@ -16,7 +19,7 @@ const index: Index = {
       title: "Two Sum",
       difficulty: "Easy",
       acceptance: 58,
-      topics: [],
+      topics: [0, 1],
       freqScore: 100,
     },
     "add-two-numbers": {
@@ -24,7 +27,7 @@ const index: Index = {
       title: "Add Two Numbers",
       difficulty: "Medium",
       acceptance: 49.5,
-      topics: [],
+      topics: [2],
       freqScore: 90,
     },
     "median-of-two-sorted-arrays": {
@@ -32,7 +35,7 @@ const index: Index = {
       title: "Median of Two Sorted Arrays",
       difficulty: "Hard",
       acceptance: 47.8,
-      topics: [],
+      topics: [0],
       freqScore: 40,
     },
   },
@@ -58,8 +61,10 @@ const query = (
 ): Parameters<typeof buildRows>[2] => ({
   window: "d30",
   search: "",
-  difficulty: "all",
+  difficulties: [],
+  topics: [],
   sort: "frequency",
+  direction: "descending",
   ...overrides,
 });
 
@@ -73,7 +78,13 @@ describe("buildRows", () => {
 
   it("skips shard slugs missing from the problem index", () => {
     const rows = buildRows(
-      { ...shard, d30: [["ghost", 10], ["two-sum", 100]] },
+      {
+        ...shard,
+        d30: [
+          ["ghost", 10],
+          ["two-sum", 100],
+        ],
+      },
       index,
       query()
     );
@@ -97,7 +108,7 @@ describe("buildRows", () => {
     const rows = buildRows(
       shard,
       index,
-      query({ window: "all", difficulty: "Hard" })
+      query({ window: "all", difficulties: ["Hard"] })
     );
     expect(rows.map((row) => row.slug)).toEqual([
       "median-of-two-sorted-arrays",
@@ -107,31 +118,21 @@ describe("buildRows", () => {
   it("sorts by frequency by default, then title, then acceptance, then difficulty", () => {
     expect(
       buildRows(shard, index, query({ window: "all" })).map((row) => row.slug)
-    ).toEqual([
-      "two-sum",
-      "add-two-numbers",
-      "median-of-two-sorted-arrays",
-    ]);
+    ).toEqual(["two-sum", "add-two-numbers", "median-of-two-sorted-arrays"]);
 
     expect(
-      buildRows(shard, index, query({ window: "all", sort: "title" })).map(
-        (row) => row.slug
-      )
-    ).toEqual([
-      "add-two-numbers",
-      "median-of-two-sorted-arrays",
-      "two-sum",
-    ]);
+      buildRows(
+        shard,
+        index,
+        query({ window: "all", sort: "title", direction: "ascending" })
+      ).map((row) => row.slug)
+    ).toEqual(["add-two-numbers", "median-of-two-sorted-arrays", "two-sum"]);
 
     expect(
       buildRows(shard, index, query({ window: "all", sort: "acceptance" })).map(
         (row) => row.slug
       )
-    ).toEqual([
-      "two-sum",
-      "add-two-numbers",
-      "median-of-two-sorted-arrays",
-    ]);
+    ).toEqual(["two-sum", "add-two-numbers", "median-of-two-sorted-arrays"]);
 
     const swapped: Index = {
       ...index,
@@ -145,20 +146,90 @@ describe("buildRows", () => {
       },
     };
     expect(
-      buildRows(shard, swapped, query({ window: "all", sort: "difficulty" }))
-        .map((row) => row.slug)
-    ).toEqual([
-      "add-two-numbers",
+      buildRows(
+        shard,
+        swapped,
+        query({ window: "all", sort: "difficulty", direction: "ascending" })
+      ).map((row) => row.slug)
+    ).toEqual(["add-two-numbers", "median-of-two-sorted-arrays", "two-sum"]);
+  });
+
+  it("filters by several difficulties at once", () => {
+    const rows = buildRows(
+      shard,
+      index,
+      query({ window: "all", difficulties: ["Easy", "Hard"] })
+    );
+    expect(rows.map((row) => row.slug)).toEqual([
+      "two-sum",
       "median-of-two-sorted-arrays",
+    ]);
+  });
+
+  it("filters by topics, matching any selected topic", () => {
+    const pick = (topics: number[]) =>
+      buildRows(shard, index, query({ window: "all", topics })).map(
+        (row) => row.slug
+      );
+    expect(pick([0])).toEqual(["two-sum", "median-of-two-sorted-arrays"]);
+    expect(pick([2])).toEqual(["add-two-numbers"]);
+    expect(pick([1, 2])).toEqual(["two-sum", "add-two-numbers"]);
+    expect(pick([99])).toEqual([]);
+  });
+
+  it("reverses every sort key, keeping title A→Z as the tie-break", () => {
+    const order = (sort: "frequency" | "acceptance" | "title" | "difficulty") =>
+      buildRows(
+        shard,
+        index,
+        query({ window: "all", sort, direction: "ascending" })
+      ).map((row) => row.slug);
+    expect(order("frequency")).toEqual([
+      "median-of-two-sorted-arrays",
+      "add-two-numbers",
       "two-sum",
     ]);
+    expect(order("acceptance")).toEqual([
+      "median-of-two-sorted-arrays",
+      "add-two-numbers",
+      "two-sum",
+    ]);
+    expect(
+      buildRows(
+        shard,
+        index,
+        query({ window: "all", sort: "title", direction: "descending" })
+      ).map((row) => row.slug)
+    ).toEqual(["two-sum", "median-of-two-sorted-arrays", "add-two-numbers"]);
+
+    const tied: CompanyShard = {
+      ...shard,
+      all: [
+        ["two-sum", 50],
+        ["add-two-numbers", 50],
+      ],
+    };
+    for (const direction of ["ascending", "descending"] as const) {
+      expect(
+        buildRows(tied, index, query({ window: "all", direction })).map(
+          (row) => row.slug
+        )
+      ).toEqual(["add-two-numbers", "two-sum"]);
+    }
+  });
+
+  it("picks a natural first direction per column", () => {
+    expect(defaultDirection("frequency")).toBe("descending");
+    expect(defaultDirection("acceptance")).toBe("descending");
+    expect(defaultDirection("title")).toBe("ascending");
+    expect(defaultDirection("difficulty")).toBe("ascending");
   });
 
   it("renumbers positions after filtering and sorting", () => {
     const rows = buildRows(
       shard,
       index,
-      query({ window: "all", sort: "title" })
+      query({ window: "all", sort: "title", direction: "ascending" })
     );
     expect(rows.map((row) => row.position)).toEqual([1, 2, 3]);
   });
@@ -189,6 +260,18 @@ describe("WINDOW_TABS", () => {
       { key: "d6m", label: "6 months" },
       { key: "g6m", label: "More than 6 months" },
       { key: "all", label: "All" },
+    ]);
+  });
+});
+
+describe("facets", () => {
+  it("counts difficulties and topics over a window, most common topic first", () => {
+    const counts = facets(windowRows(shard, index, "all"));
+    expect(counts.difficulty).toEqual({ Easy: 1, Medium: 1, Hard: 1 });
+    expect(counts.topics).toEqual([
+      { id: 0, count: 2 },
+      { id: 1, count: 1 },
+      { id: 2, count: 1 },
     ]);
   });
 });

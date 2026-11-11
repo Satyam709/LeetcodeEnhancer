@@ -6,6 +6,12 @@
  */
 
 export const COMPANY_CONTAINER = ".company-container";
+/**
+ * The company-page premium wall. Its CSS-module class has shipped as both
+ * `company_subscribeContainer__<hash>` and `<HASH>_subscribeContainer`, so only
+ * the stable `subscribeContainer` part is matched.
+ */
+export const COMPANY_WALL = '[class*="subscribeContainer"]';
 export const PREMIUM_LOCK_IMG = 'img[alt="premium lock icon"]';
 
 export interface CompanyTakeover {
@@ -16,14 +22,12 @@ export interface CompanyTakeover {
 }
 
 /**
- * `/company/{slug}`: the premium wall card (`company_subscribeContainer__<hash>`)
+ * `/company/{slug}`: the premium wall card (see `COMPANY_WALL`)
  * sits in the right column, next to the native left company card. Returns the
  * column to replace and the wall that proves the list is locked.
  */
 export function findCompanyTakeover(root: ParentNode): CompanyTakeover | null {
-  for (const wall of root.querySelectorAll(
-    '[class*="company_subscribeContainer"]'
-  )) {
+  for (const wall of root.querySelectorAll(COMPANY_WALL)) {
     const text = (wall.textContent ?? "").toLowerCase();
     const hasSignal =
       text.includes("unlock") ||
@@ -73,7 +77,8 @@ export function findLockedCompaniesChip(
       chip = chip.parentElement;
       depth += 1;
     }
-    if (chip === null || chip.querySelector(PREMIUM_LOCK_IMG) === null) continue;
+    if (chip === null || chip.querySelector(PREMIUM_LOCK_IMG) === null)
+      continue;
 
     const row = chip.parentElement;
     if (row === null) continue;
@@ -81,6 +86,34 @@ export function findLockedCompaniesChip(
       continue;
     }
     return { chip: chip as HTMLElement, row: row as HTMLElement };
+  }
+  return null;
+}
+
+export interface LockedCompaniesAccordion {
+  /** The accordion item (a sibling of the Topics/Hint items, between `<hr>`s). */
+  item: HTMLElement;
+  /** The clickable header row; its chevron is reused for our item. */
+  header: HTMLElement;
+}
+
+/**
+ * `/problems/{slug}`: below the statement, Topics / Companies / Hints / Similar
+ * Questions are accordion items. On a free account the Companies item has a
+ * gold `premium-text-*` label and a lock icon; premium accounts get a plain
+ * label, so the gold label is the positive locked signal.
+ */
+export function findLockedCompaniesAccordion(
+  root: ParentNode
+): LockedCompaniesAccordion | null {
+  for (const label of root.querySelectorAll('[class*="premium-text"]')) {
+    if ((label.textContent ?? "").trim() !== "Companies") continue;
+    // The chip at the top shares the label class but is not a `group` header.
+    const header = label.closest<HTMLElement>(".group.cursor-pointer");
+    if (header === null || header.querySelector("img") === null) continue;
+    const item = header.parentElement?.parentElement;
+    if (item == null || item.parentElement === null) continue;
+    return { item, header };
   }
   return null;
 }

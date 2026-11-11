@@ -31,6 +31,8 @@ export interface DataLayer {
   companiesForProblem(slug: string): Promise<ProblemCompanyEntry[]>;
   /** The index's derived score for a problem, or `undefined`. */
   derivedFrequency(slug: string): Promise<number | undefined>;
+  /** Topic names; `IndexProblem.topics` holds indexes into this list. */
+  topics(): Promise<string[]>;
 }
 
 function isMeta(value: unknown): value is Meta {
@@ -129,5 +131,21 @@ export function createDataLayer(deps: {
     return idx.problems[slug]?.freqScore;
   }
 
-  return { meta, index, company, companiesForProblem, derivedFrequency };
+  function topics(): Promise<string[]> {
+    return memoized("data/topics.json", async () => {
+      await meta();
+      const value = await loadJson("data/topics.json");
+      if (!Array.isArray(value)) throw new DataUnavailable("data/topics.json");
+      return value.filter((t): t is string => typeof t === "string");
+    });
+  }
+
+  return {
+    meta,
+    index,
+    company,
+    companiesForProblem,
+    derivedFrequency,
+    topics,
+  };
 }
