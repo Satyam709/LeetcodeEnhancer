@@ -1,0 +1,1 @@
+{"d30":[],"d3m":[["sliding-window-maximum",100]],"d6m":[["sliding-window-maximum",100]],"g6m":[["logger-rate-limiter",100],["minimum-area-rectangle",100],["lru-cache",89.5],["russian-doll-envelopes",89.5]],"all":[["logger-rate-limiter",100],["minimum-area-rectangle",92.7],["russian-doll-envelopes",92.7],["lru-cache",82.5],["sliding-window-maximum",82.5]]}
