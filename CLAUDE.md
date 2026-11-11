@@ -42,7 +42,10 @@ There are two halves, and they only talk to each other through the data artifact
 - `src/lib/dom/watch.ts` (`watchDom`) keeps injections alive. LeetCode's React tree re-renders often, for example when it loads the next page of the problemset or re-renders the problem description, and that drops our nodes or re-shows locked ones. Each view registers an idempotent `apply()` that runs synchronously in a MutationObserver callback, before the next paint, so the native locked UI never flashes. Mutations inside `.lce-root` are ignored. Hide native nodes in place with `style.display` and never detach them, because React owns them. Re-attach the same node of ours so user state such as tabs, search and open accordions survives.
 - `src/lib/data/` is the runtime data layer: memoizing `fetch` of `runtime.getURL("data/...")`. It throws `DataUnavailable` on a missing file or a schema mismatch.
 - `src/lib/dom/selectors.ts` is the single home for every LeetCode selector. `readiness.ts` provides `waitFor`/`waitUntil`, which are MutationObserver-based and abortable. `html.ts` provides the `el()` and `svg()` builders. No UI framework is used.
-- `src/lib/settings.ts` wraps `storage.local` settings (currently just `highlight`). The popup (`src/popup/`) edits them, and content scripts subscribe to changes.
+- `src/lib/settings.ts` wraps `storage.local` settings (`highlight`, `autoUpdate`). The popup (`src/popup/`) edits them, and content scripts and the background worker subscribe to changes.
+- `src/background/` is the data updater: a Chrome service worker, or a Firefox event page (`background.scripts`). A daily `alarms` tick and the popup's **Check now** run `checkForUpdate` (`updater.ts`). It resolves the `data` branch head through the GitHub API, then reads `cdn.jsdelivr.net/gh/Satyam709/LeetcodeEnhancer@<sha>/v1/`. Pinning to the commit keeps meta and shards from one publish. It downloads only files whose sha256 is neither cached nor bundled, verifies each one, and switches `active` only when the whole snapshot is present. Blobs live in IndexedDB keyed by sha256 (`store.ts`), and GC keeps the active and previous generations. Both endpoints send CORS `*`, so there are no `host_permissions`. Keep it that way, because adding them would show users a new permission warning.
+- Message protocol (`src/lib/data/protocol.ts`): `lce:data:meta`, `lce:data:file` and `lce:data:check`. `createBrowserDataLayer` asks for the active snapshot once and pins it for the layer's lifetime (problem shards index into `index.json`, so one page must never mix snapshots). It falls back to the bundled `runtime.getURL` path whenever the worker is unreachable, auto-update is off, or the bundle is at least as new as the cache.
+- `.github/workflows/sync-data.yml` runs weekly and on manual dispatch, from the default branch only. It runs `data:sync`, then `tools/sync-data/publish-diff.ts`, which compares the file sha maps and ignores `generatedAt`. If anything changed it commits to the orphan `data` branch under `v<schemaVersion>/`. On failure it opens a single `data-sync` issue.
 
 ## Invariants to preserve
 
@@ -53,6 +56,7 @@ There are two halves, and they only talk to each other through the data artifact
   - `src/lib/data/types.ts` mirrors `tools/sync-data/schema.ts`.
   - `problemShardName` exists in both `src/lib/data/shards.ts` and `tools/sync-data/build-artifacts.ts`.
   - Window mask bits are d30=1, d3m=2, d6m=4, g6m=8, all=16.
+  - The data-branch directory `v<N>/` in `sync-data.yml` must equal `SCHEMA_VERSION` (`DATA_PATH` in `src/lib/data/protocol.ts`). A schema bump publishes to a new directory so older clients keep receiving the data they understand.
 
 ## Tests
 

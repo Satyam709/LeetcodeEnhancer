@@ -31,6 +31,8 @@ export interface ManifestBase {
   /** Required so the content script can fetch data/** via runtime.getURL. */
   web_accessible_resources?: WebAccessibleResource[];
   icons?: Record<string, string>;
+  /** Background entry (data updater): a service worker on Chrome, an event page on Firefox. */
+  background_script?: string;
   /** Firefox extension id — only emitted when building for firefox. */
   gecko_id: string;
 }
@@ -45,6 +47,7 @@ export interface Manifest {
   action?: ManifestAction;
   web_accessible_resources?: WebAccessibleResource[];
   icons?: Record<string, string>;
+  background?: { service_worker: string } | { scripts: string[] };
   browser_specific_settings?: { gecko: GeckoSettings };
 }
 
@@ -75,6 +78,14 @@ export function buildManifest(
       : {}),
     ...(base.icons ? { icons: base.icons } : {}),
   };
+
+  if (base.background_script !== undefined) {
+    // Firefox MV3 has no service workers; it runs background scripts as an event page.
+    manifest.background =
+      opts.browser === "firefox"
+        ? { scripts: [base.background_script] }
+        : { service_worker: base.background_script };
+  }
 
   if (opts.browser === "firefox") {
     manifest.browser_specific_settings = {

@@ -22,10 +22,26 @@
       </label>
 
       <p id="status" class="status" role="status">Normal extension look.</p>
-      <p id="data" class="note">
-        Community company data is bundled with the extension.
+
+      <label class="toggle toggle--spaced" for="auto-update">
+        <input type="checkbox" id="auto-update" />
+        <span>
+          <strong>Auto-update company data</strong>
+          <small>Checks this project's GitHub data branch once a day.</small>
+        </span>
+      </label>
+
+      <div class="data-row">
+        <p id="data" class="note">
+          Community company data is bundled with the extension.
+        </p>
+        <button type="button" id="check" class="button">Check now</button>
+      </div>
+      <p id="update-status" class="status" role="status"></p>
+      <p class="note">
+        No telemetry. Updates download only public data files; nothing about you
+        is sent.
       </p>
-      <p class="note">No telemetry, no network requests.</p>
     </main>
     <script src="popup.js"></script>
   </body>

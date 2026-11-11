@@ -17,6 +17,7 @@ export interface BuildOptions {
 /**
  * Build the unpacked extension into `outdir`:
  *   content.js/content.css (page surfaces), popup.html/js/css (settings),
+ *   background.js (data updater),
  *   manifest.json, data/**.
  * Runs from the package root and fails loudly if the data artifacts are
  * missing (run `pnpm data:sync`).
@@ -71,6 +72,15 @@ export async function build(opts: BuildOptions): Promise<void> {
     outfile: path.join(outdir, "popup.js"),
     minify,
   };
+  const backgroundOptions: esbuild.BuildOptions = {
+    entryPoints: [path.join(root, "src/background/index.ts")],
+    bundle: true,
+    format: "iife",
+    platform: "browser",
+    target: "es2022",
+    outfile: path.join(outdir, "background.js"),
+    minify,
+  };
   const popupCssOptions: esbuild.BuildOptions = {
     entryPoints: [path.join(root, "src/popup/popup.css")],
     bundle: true,
@@ -101,18 +111,16 @@ export async function build(opts: BuildOptions): Promise<void> {
   }
 
   if (opts.watch) {
-    const [jsCtx, cssCtx, popupJsCtx, popupCssCtx] = await Promise.all([
-      esbuild.context(jsOptions),
-      esbuild.context(cssOptions),
-      esbuild.context(popupJsOptions),
-      esbuild.context(popupCssOptions),
-    ]);
-    await Promise.all([
-      jsCtx.watch(),
-      cssCtx.watch(),
-      popupJsCtx.watch(),
-      popupCssCtx.watch(),
-    ]);
+    const contexts = await Promise.all(
+      [
+        jsOptions,
+        cssOptions,
+        popupJsOptions,
+        popupCssOptions,
+        backgroundOptions,
+      ].map((options) => esbuild.context(options))
+    );
+    await Promise.all(contexts.map((ctx) => ctx.watch()));
     console.log(
       `watching src/ → ${path.relative(root, outdir)}/ (${opts.browser}, v${pkg.version})`
     );
@@ -124,6 +132,7 @@ export async function build(opts: BuildOptions): Promise<void> {
     esbuild.build(cssOptions),
     esbuild.build(popupJsOptions),
     esbuild.build(popupCssOptions),
+    esbuild.build(backgroundOptions),
   ]);
 
   console.log(
