@@ -1,155 +1,110 @@
-# Leetcode Enhancer
+# LeetCode Enhancer
 
 [![Logo](https://github.com/Satyam709/LeetcodeEnhancer/blob/main/assets/logo.png?raw=true)](https://github.com/Satyam709/LeetcodeEnhancer)
 
-Enhance your Leetcode experience with additional features and tools to make problem-solving more efficient and insightful!
+Community-powered company interview data for leetcode.com. It is rendered inside LeetCode's own pages and designed to look like part of the site.
 
 [Report Bug](https://github.com/Satyam709/LeetcodeEnhancer/issues) · [Request Feature](https://github.com/Satyam709/LeetcodeEnhancer/issues)
 
 ---
 
-## Leetcode Enhancher
+## Features
 
-Unlock Leetcode premium features without the need for a subscription or login.
+The extension only changes parts of LeetCode that are locked behind Premium. Everything else stays native, and Premium subscribers see LeetCode exactly as before.
 
-### Features
+- **Company pages** (`/company/{slug}`): the Premium wall is replaced with the company's question list. It has 30-day, 3-month, 6-month, older and all-time tabs, search, a difficulty filter, sortable columns, and a frequency bar for each question.
+- **Problem pages:** the locked **Companies** chip and accordion item work again. They list the companies that asked the problem, grouped by how recently they asked it. Each company links to its company page.
+- **Problem lists** (`/problemset`, `/problem-list/*`): the locked frequency bars are filled with a derived frequency score from the community data. Rows we have no data for keep LeetCode's own widget.
+- **Light and dark themes:** everything uses LeetCode's own colour tokens and follows the site theme.
 
-- **Display Problem Frequency**: See how often a problem has been asked in interviews.
-- **Unlock Company-Specific Problems**: Gain access to problems from specific companies (usually restricted to premium users).
-- **Sort Company Problems**: Organize company problems by ID, name, difficulty, acceptance rate, and frequency.
-- **Unlock Premium Problem URLs**: Access URLs to premium problems directly without a subscription.
-- **View Premium Problems**: Directly view premium content that is typically behind a paywall.
-- **Company Info on Problem Page**: View company names associated with each problem on the problem page.
-- **Editorial Access**: Unlock access to premium problem editorials and solutions.
-- **Cross-Browser Support**: Available for both Chrome and Firefox browsers.
+![Company page](./screenshots/company-page.png)
 
----
+![Companies on a problem page](./screenshots/problem-companies.png)
 
-### Screenshots
+![Frequency on the problem list](./screenshots/problemset-frequency.png)
 
-Here are some screenshots showing the features of Leetcode Enhancer in action:
+## Privacy
 
-![Screenshot 1](./screenshots/Capure.png)
+- No telemetry, analytics or tracking of any kind.
+- The data ships inside the extension, so it makes no network requests of its own.
+- The only permission is `storage`, which saves the popup's single setting.
 
-![Screenshot 2](./screenshots/Capture4.png)
+## Data
 
-![Screenshot 3](./screenshots/Capure2.png)
-
-![Screenshot 4](./screenshots/Capure3.png)
-
----
-
-## Contributing
-
-We welcome contributions to improve Leetcode Enhancer! If you find any bugs or have ideas for new features, feel free to open an issue or submit a pull request.
-
-### Steps to Contribute:
-
-1. Fork the repository.
-2. Create a new branch for your feature/fix.
-3. Commit your changes and push to your fork.
-4. Create a pull request with a description of what you've done.
-
----
-
-## License
-
-Leetcode Enhancer is open-source and released under the [MIT License](https://opensource.org/licenses/MIT).
-
----
-
-## Disclaimer
-
-Leetcode Enhancer is an unofficial project and is not endorsed or affiliated with Leetcode in any way. It merely enhances the user experience by providing additional features that are normally available only to premium subscribers.
-
----
-
-## Support
-
-If you need any help, have questions, or want to report an issue, please feel free to reach out:
-
-- [Open an Issue](https://github.com/Satyam709/LeetcodeEnhancer/issues)
-
----
-
-## How to Build
-
-To build the extension from source:
-
-1. **Install dependencies**
-   ```bash
-   pnpm install
-   ```
-
-2. **Build the extension**
-   ```bash
-   pnpm build
-   ```
-
-This will create the built extension files ready for installation in both Chrome and Firefox.
+Company data comes from the community-maintained [liquidslr/leetcode-company-wise-problems](https://github.com/liquidslr/leetcode-company-wise-problems) repository. It is converted into compact JSON at build time. The popup shows the date of the bundled snapshot.
 
 ---
 
 ## Installation
 
-### Chrome Installation
+Download the latest `leetcode-enhancer-chrome-v*.zip` or `leetcode-enhancer-firefox-v*.zip` from the [Releases](https://github.com/Satyam709/LeetcodeEnhancer/releases) page.
 
-1. **Download the Chrome ZIP file**
-   - Go to the [Releases](https://github.com/Satyam709/LeetcodeEnhancer/releases) page of this repository.
-   - Download the latest `leetcode-enhancer-chrome-v2.0.0.zip` file.
+### Chrome / Edge / Brave
 
-2. **Extract the ZIP file**
-   - Extract the contents of the `.zip` file to a folder on your computer.
+1. Extract the zip to a folder.
+2. Open `chrome://extensions` and turn on **Developer mode**.
+3. Click **Load unpacked** and select the extracted folder.
 
-3. **Load the Extension into Chrome**
-   - Open Google Chrome.
-   - Navigate to `chrome://extensions/`.
-   - Enable **Developer Mode** (toggle switch in the top-right corner).
-   - Click **Load unpacked**.
-   - Select the folder where you extracted the extension.
+### Firefox (140+)
 
-### Firefox Installation
+1. Open `about:debugging#/runtime/this-firefox`.
+2. Click **Load Temporary Add-on…** and select the zip, or `manifest.json` in the extracted folder.
 
-1. **Download the Firefox ZIP file**
-   - Go to the [Releases](https://github.com/Satyam709/LeetcodeEnhancer/releases) page of this repository.
-   - Download the latest `leetcode-enhancer-firefox-v2.0.0.zip` file.
+Temporary add-ons are removed when Firefox restarts.
 
-2. **Load the Extension into Firefox**
-   - Open Firefox.
-   - Navigate to `about:debugging`.
-   - Click **This Firefox**.
-   - Click **Load Temporary Add-on**.
-   - Select the zip or extacted folder as required.
+### Popup
 
-### Usage
-
-4. **Use the Extension**
-   - The extension will now be loaded in your browser and ready to use.
-   - You can pin the extension to the toolbar for quick access.
-   - Visit Leetcode.com to see the enhanced features in action.
+Pin the extension and open its popup to toggle **Highlight injected changes**. This draws green outlines around everything the extension adds, which helps when reporting issues.
 
 ---
 
-## Notes
+## Development
 
-- If you encounter theme coloring issues, just set the theme in Leetcode to manual rather than system.
-- The extension works on various Leetcode pages including problem sets, individual problems, and study plans.
+Requires Node.js 22+ and pnpm.
+
+```bash
+pnpm install
+pnpm data:sync        # download the source repo and build data/ (gitignored)
+pnpm build            # unpacked Chrome build in dist/
+pnpm build:firefox    # unpacked Firefox build in dist/
+pnpm dev              # rebuild on change
+pnpm package          # minified builds in dist/<browser>/ and zips in releases/
+pnpm typecheck
+pnpm test
+```
+
+To see debug logs on leetcode.com, run `localStorage.setItem("lce:debug", "1")` in the DevTools console. The manual release checklist is in [`docs/dev/manual-qa.md`](./docs/dev/manual-qa.md).
+
+---
+
+## Contributing
+
+Issues and pull requests are welcome. Please run `pnpm typecheck` and `pnpm test` before opening a PR. If you change an injected view, also go through the manual QA checklist.
+
+## License
+
+Released under the [MIT License](https://opensource.org/licenses/MIT).
+
+## Disclaimer
+
+LeetCode Enhancer is an unofficial project. It is not endorsed by or affiliated with LeetCode. Company data is community-reported and may be incomplete or out of date.
 
 ---
 
 ## Changelog
 
-### v2.0.0 (Latest)
+### v3.0.0
 
-- **Firefox Support**: Added support for Firefox browser with dedicated Firefox manifest.
-- **Enhanced Editorial Access**: Improved access to premium editorials and solutions.
-- **Better Error Handling**: Added analytics and error tracking for improved stability.
-- **Code Optimization**: Refactored codebase with modular architecture for better maintainability.
-- **Cross-Browser Compatibility**: Ensured consistent functionality across Chrome and Firefox.
+- Rewritten in TypeScript as a Manifest V3 extension for Chrome and Firefox.
+- Company data comes from a bundled community dataset instead of a Google Sheet, and there is no telemetry.
+- Company lists render on the real company page, and the Companies chip and accordion on problem pages work again. Problem lists show a derived frequency.
+- Every surface matches LeetCode's own styling in light and dark themes, and survives LeetCode re-rendering the page.
+- Premium problem statements and editorials are no longer included.
+
+### v2.0.0
+
+- Firefox support, editorial access, modular refactor.
 
 ### v1.0.0
 
 - Initial release.
-- Basic premium feature unlocking.
-- Company-specific problem access.
-- Problem frequency display.

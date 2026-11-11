@@ -1,0 +1,848 @@
+/* Injected UI styles — every selector must be scoped under .lce (build-guarded).
+   Tokens are "native-first": LeetCode's own custom properties win wherever they
+   exist, and the neutral value is only a fallback. Native token names
+   (--text-primary, --fill-quaternary, --border-primary) are never redefined —
+   they are consumed directly with their own fallbacks by views. */
+.lce-root {
+  color-scheme: inherit;
+  font-family: inherit;
+
+  /* LeetCode ships two token families: plain colors (--fill-*, --text-*) and
+     shadcn-style HSL channels (--sd-*). Both are consumed with fallbacks. */
+  --lce-foreground: var(--text-primary, #1a1a1a);
+  --lce-muted-foreground: hsl(var(--sd-muted-foreground, 0 0% 45%));
+  --lce-stripe: var(--fill-quaternary, rgba(0, 0, 0, 0.02));
+  --lce-hover: var(--fill-tertiary, rgba(0, 0, 0, 0.04));
+  --lce-control: var(--fill-tertiary, rgba(0, 0, 0, 0.04));
+  --lce-control-hover: var(--fill-secondary, rgba(0, 0, 0, 0.06));
+  --lce-track: var(--fill-secondary, rgba(0, 0, 0, 0.06));
+  --lce-popover: hsl(var(--sd-popover, 0 0% 100%));
+  --lce-easy: hsl(var(--sd-easy, 180 74% 42%));
+  --lce-medium: hsl(var(--sd-medium, 43 100% 50%));
+  --lce-hard: hsl(var(--sd-hard, 0 91% 59%));
+}
+
+/* Company page — replaces only the locked right column on /company/{slug}. */
+.lce-company {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  margin-top: 16px;
+  color: var(--lce-foreground);
+}
+
+.lce-company__header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lce-company__heading {
+  margin: 0;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.lce-company__meta {
+  margin: 0;
+  color: var(--lce-muted-foreground);
+  line-height: 16px;
+}
+
+.lce-tabs {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* `.lce-root` lifts this above LeetCode's `[type="button"]` reset, which
+   loads later and would otherwise clear the background. */
+.lce-root .lce-tab {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--lce-control);
+  color: var(--lce-foreground);
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.lce-tab:hover {
+  background: var(--lce-control-hover);
+}
+
+.lce-tab__count {
+  color: var(--lce-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.lce-tab.is-active {
+  background: var(--lce-foreground);
+  color: hsl(var(--sd-background, 0 0% 100%));
+}
+
+.lce-tab.is-active .lce-tab__count {
+  color: inherit;
+  opacity: 0.6;
+}
+
+/* Keyboard focus only, as a thin ring like LeetCode's focus-visible:ring-1. */
+.lce-tab:focus-visible,
+.lce-sort:focus-visible,
+.lce-more:focus-visible,
+.lce-tool:focus-visible,
+.lce-menu__item:focus-visible,
+.lce-pill:focus-visible,
+.lce-filter-chip:focus-visible,
+.lce-link:focus-visible {
+  outline: 1px solid hsl(var(--sd-ring, 0 0% 60%));
+  outline-offset: 1px;
+}
+
+.lce-search:focus-visible,
+.lce-filter__search:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px hsl(var(--sd-ring, 0 0% 60%));
+}
+
+.lce-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.lce-search-wrap {
+  position: relative;
+  display: flex;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.lce-search-wrap__icon {
+  position: absolute;
+  top: 9px;
+  left: 12px;
+  width: 14px;
+  height: 14px;
+  color: var(--lce-muted-foreground);
+  pointer-events: none;
+}
+
+.lce-search {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 0 12px 0 34px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--lce-control);
+  color: var(--lce-foreground);
+  font-family: inherit;
+  outline: none;
+}
+
+.lce-search::placeholder {
+  color: var(--lce-muted-foreground);
+  opacity: 1;
+}
+
+.lce-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.lce-company__head {
+  position: relative;
+}
+
+.lce-sort:hover,
+.lce-sort.is-active {
+  color: var(--lce-foreground);
+}
+
+.lce-sort__arrow {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.lce-sort:hover .lce-sort__arrow {
+  opacity: 0.5;
+}
+
+.lce-sort.is-active .lce-sort__arrow {
+  opacity: 1;
+}
+
+/* Toolbar tools (sort / filter) and their popover menus. */
+.lce-tool-wrap {
+  position: relative;
+  flex: none;
+}
+
+.lce-root .lce-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--lce-control);
+  color: var(--lce-foreground);
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.lce-tool:hover,
+.lce-tool[aria-expanded="true"] {
+  background: var(--lce-control-hover);
+}
+
+.lce-icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+.lce-tool__badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--lce-foreground);
+  color: hsl(var(--sd-background, 0 0% 100%));
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.lce-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid hsla(var(--sd-border, 0, 0%, 0%, 0.08));
+  border-radius: 8px;
+  background: var(--lce-popover);
+  color: var(--lce-foreground);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.lce-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 32px;
+  padding: 0 10px 0 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lce-menu__item:hover,
+.lce-menu__item:focus-visible {
+  background: var(--lce-hover);
+}
+
+.lce-menu__check {
+  display: inline-flex;
+  width: 16px;
+  visibility: hidden;
+}
+
+.lce-menu__item[aria-checked="true"] .lce-menu__check {
+  visibility: visible;
+}
+
+.lce-menu__sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: hsla(var(--sd-border, 0, 0%, 0%, 0.08));
+}
+
+.lce-menu--filter {
+  width: 280px;
+  gap: 12px;
+  padding: 12px;
+}
+
+.lce-filter__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lce-filter__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--lce-muted-foreground);
+  font-weight: 500;
+}
+
+.lce-filter__pills {
+  display: flex;
+  gap: 6px;
+}
+
+.lce-root .lce-pill {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--lce-control);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.lce-pill:hover {
+  background: var(--lce-control-hover);
+}
+
+.lce-pill[aria-pressed="true"] {
+  border-color: currentColor;
+  background: var(--lce-control-hover);
+}
+
+.lce-pill__count {
+  color: var(--lce-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.lce-filter__search {
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--lce-control);
+  color: var(--lce-foreground);
+  font-family: inherit;
+}
+
+.lce-filter__search::placeholder {
+  color: var(--lce-muted-foreground);
+  opacity: 1;
+}
+
+.lce-filter__topics {
+  display: flex;
+  flex-direction: column;
+  max-height: 240px;
+  margin: 0 -4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.lce-filter__topic {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 0 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.lce-filter__topic:hover {
+  background: var(--lce-hover);
+}
+
+.lce-filter__topic input {
+  margin: 0;
+  accent-color: var(--lce-foreground);
+}
+
+.lce-filter__topic-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lce-filter__topic-count,
+.lce-filter__none {
+  margin: 0;
+  color: var(--lce-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Result count + removable active-filter chips under the toolbar. */
+.lce-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-height: 24px;
+}
+
+.lce-summary__count {
+  color: var(--lce-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.lce-summary__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.lce-root .lce-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 6px 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--lce-control);
+  color: var(--lce-foreground);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.lce-filter-chip:hover {
+  background: var(--lce-control-hover);
+}
+
+.lce-filter-chip__x {
+  width: 12px;
+  height: 12px;
+  color: var(--lce-muted-foreground);
+}
+
+.lce-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--lce-muted-foreground);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.lce-link:hover {
+  color: var(--lce-foreground);
+  text-decoration: underline;
+}
+
+.lce-company__table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.lce-company__row,
+.lce-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 70px 56px 104px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0 16px;
+}
+
+.lce-company__head {
+  height: 32px;
+  color: var(--lce-muted-foreground);
+}
+
+.lce-col {
+  min-width: 0;
+}
+
+.lce-col--title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lce-row {
+  height: 44px;
+  border-radius: 8px;
+  color: var(--lce-foreground);
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.lce-row:nth-child(odd) {
+  background: var(--lce-stripe);
+}
+
+.lce-row:hover {
+  background: var(--lce-hover);
+}
+
+.lce-row:focus-visible {
+  outline: 2px solid var(--lce-foreground);
+  outline-offset: -2px;
+}
+
+.lce-row__num,
+.lce-row__acc {
+  color: var(--lce-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.lce-row__title {
+  font-weight: 500;
+}
+
+.lce-row__freq {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lce-diff--easy {
+  color: var(--lce-easy);
+}
+
+.lce-diff--medium {
+  color: var(--lce-medium);
+}
+
+.lce-diff--hard {
+  color: var(--lce-hard);
+}
+
+.lce-freqbar {
+  display: inline-block;
+  flex: none;
+  width: 56px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--lce-track);
+  overflow: hidden;
+}
+
+.lce-freqbar__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--lce-foreground);
+  opacity: 0.6;
+}
+
+.lce-freqbar__value {
+  color: var(--lce-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.lce-company__empty {
+  margin: 0;
+  padding: 40px 16px;
+  border-radius: 8px;
+  background: var(--lce-stripe);
+  color: var(--lce-muted-foreground);
+  text-align: center;
+}
+
+.lce-company__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Our display rules beat the UA [hidden] rule: restate it. */
+.lce-company [hidden] {
+  display: none !important;
+}
+
+.lce-more-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.lce-root .lce-more {
+  height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--lce-control);
+  color: var(--lce-foreground);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.lce-more:hover {
+  background: var(--lce-control-hover);
+}
+
+@media (max-width: 720px) {
+  .lce-company__row,
+  .lce-row {
+    grid-template-columns: 28px minmax(0, 1fr) 48px 72px;
+    gap: 8px;
+    padding: 0 10px;
+  }
+
+  .lce-col--acc,
+  .lce-row__acc {
+    display: none;
+  }
+
+  .lce-freqbar {
+    width: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lce-tab,
+  .lce-row {
+    transition: none;
+  }
+}
+
+/* Problem page — working Companies chip + accordion item under the statement.
+   Shapes and colors come from LeetCode's own utility classes on the nodes;
+   these rules reset our <button>s, size the icons and lay out the groups.
+   Utility classes like `inline-flex` beat the UA [hidden] rule, so hidden
+   states are restated here. */
+.lce-chip {
+  border: 0;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.lce-chip:focus-visible,
+.lce-acc__header:focus-visible,
+.lce-acc__more:focus-visible {
+  outline: 2px solid var(--lce-foreground);
+  outline-offset: 2px;
+}
+
+.lce-chip__icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+.lce-acc__header {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+}
+
+.lce-acc__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lce-acc__icon {
+  width: 16px;
+  height: 16px;
+  margin: 2px;
+  flex: none;
+  color: var(--lce-foreground);
+}
+
+.lce-acc__count,
+.lce-acc__label-count {
+  color: var(--lce-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.lce-acc__chevron {
+  display: block;
+  width: 1em;
+  height: 1em;
+  stroke-width: 2;
+  transition: transform 0.2s ease;
+}
+
+.lce-acc.is-open .lce-acc__chevron {
+  transform: rotate(180deg);
+}
+
+.lce-acc__body[hidden],
+.lce-acc .lce-tag[hidden] {
+  display: none !important;
+}
+
+.lce-acc__content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+  padding-left: 28px;
+}
+
+.lce-acc__group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.lce-acc__label {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  color: var(--lce-muted-foreground);
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.lce-acc__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.lce-acc__more {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--lce-muted-foreground);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.lce-acc__more:hover {
+  color: var(--lce-foreground);
+  text-decoration: underline;
+}
+
+.lce-acc__source {
+  margin: 0;
+  color: var(--lce-muted-foreground);
+  opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lce-acc__chevron {
+    transition: none;
+  }
+}
+
+/* Problemset / problem-list — derived frequency replaces the locked widget. */
+.lce-freqcell {
+  display: flex;
+  align-items: center;
+  width: 64px;
+  padding: 0 4px;
+}
+
+.lce-freqcell__track {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--lce-track);
+  overflow: hidden;
+}
+
+.lce-freqcell__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--lce-foreground);
+  opacity: 0.6;
+}
+
+/* Screen-reader-only text (frequency cell accessibility). */
+.lce-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Optional "highlight changes" layer, toggled from the extension popup.
+   Green means: this node was injected/replaced by LeetCode Enhancer. */
+.lce-highlight .lce-company,
+.lce-highlight .lce-acc,
+.lce-highlight .lce-freqcell {
+  outline: 1px dashed #22c55e;
+  outline-offset: 2px;
+}
+
+.lce-highlight .lce-company__heading {
+  color: #22c55e;
+}
+
+.lce-highlight .lce-row {
+  box-shadow: inset 3px 0 0 #22c55e;
+}
+
+.lce-highlight .lce-row:hover {
+  background-color: rgba(34, 197, 94, 0.08);
+}
+
+.lce-highlight .lce-freqbar__fill,
+.lce-highlight .lce-freqcell__fill {
+  background-color: #22c55e;
+  opacity: 1;
+}
+
+.lce-highlight .lce-chip {
+  box-shadow: 0 0 0 2px #22c55e;
+}
+
+.lce-highlight .lce-acc__icon,
+.lce-highlight .lce-chip__icon {
+  color: #22c55e;
+}
+
+.lce-highlight .lce-tool,
+.lce-highlight .lce-search {
+  box-shadow: inset 0 0 0 1px #22c55e;
+}
+
+.lce-highlight .lce-tab.is-active {
+  color: #22c55e;
+  border-bottom-color: #22c55e;
+}

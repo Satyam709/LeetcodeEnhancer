@@ -1,0 +1,31 @@
+{
+  "name": "LeetCode Enhancer",
+  "description": "Community-powered company interview data for leetcode.com, rendered natively. No premium, no telemetry.",
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LeetCode Enhancer"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://leetcode.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["data/*"],
+      "matches": ["https://leetcode.com/*"]
+    }
+  ],
+  "icons": {
+    "16": "assets/icons/16.png",
+    "32": "assets/icons/32.png",
+    "48": "assets/icons/48.png",
+    "96": "assets/icons/96.png",
+    "128": "assets/icons/128.png"
+  },
+  "gecko_id": "leetcode-enhancer@v3.local"
+}
