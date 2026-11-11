@@ -113,8 +113,28 @@ describe("buildManifest", () => {
     expect(manifest.web_accessible_resources).toEqual([
       { resources: ["data/*"], matches: ["https://leetcode.com/*"] },
     ]);
-    expect(manifest.permissions).toEqual(["storage"]);
+    expect(manifest.permissions).toEqual(["storage", "alarms"]);
+    expect(manifest).not.toHaveProperty("host_permissions");
     expect(manifest.action?.default_popup).toBe("popup.html");
+    expect(manifest).not.toHaveProperty("background_script");
+  });
+
+  it("emits a service worker for chrome and an event page for firefox", () => {
+    const withBackground: ManifestBase = {
+      ...base,
+      background_script: "background.js",
+    };
+    expect(
+      buildManifest(withBackground, { version: "3.0.0", browser: "chrome" })
+        .background
+    ).toEqual({ service_worker: "background.js" });
+    expect(
+      buildManifest(withBackground, { version: "3.0.0", browser: "firefox" })
+        .background
+    ).toEqual({ scripts: ["background.js"] });
+    expect(
+      buildManifest(base, { version: "3.0.0", browser: "chrome" })
+    ).not.toHaveProperty("background");
   });
 
   it("every icon referenced in manifest.base.json exists on disk as a PNG", async () => {

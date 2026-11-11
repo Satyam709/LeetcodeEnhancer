@@ -27,7 +27,11 @@ body {
   padding: 14px;
   background: var(--popup-bg);
   color: var(--popup-fg);
-  font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font:
+    13px/1.45 system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
 }
 
 .popup__header {
@@ -96,4 +100,37 @@ h1 {
   margin: 10px 0 0;
   color: var(--popup-muted);
   font-size: 11px;
+}
+
+.toggle--spaced {
+  margin-top: 12px;
+}
+
+.data-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.button {
+  flex: none;
+  margin-top: 8px;
+  padding: 3px 9px;
+  border: 1px solid var(--popup-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--popup-fg);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.button:disabled {
+  color: var(--popup-muted);
+  cursor: default;
+}
+
+.status.is-error {
+  color: #dc2626;
 }

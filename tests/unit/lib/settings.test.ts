@@ -27,11 +27,17 @@ describe("settings", () => {
     });
 
     const settings = await import("../../../src/lib/settings");
-    expect(settings.getSettings()).toEqual({ highlight: false });
+    expect(settings.getSettings()).toEqual({
+      highlight: false,
+      autoUpdate: true,
+    });
 
     await settings.initSettings();
     expect(get).toHaveBeenCalledWith("settings");
-    expect(settings.getSettings()).toEqual({ highlight: true });
+    expect(settings.getSettings()).toEqual({
+      highlight: true,
+      autoUpdate: true,
+    });
     expect(document.documentElement.classList.contains("lce-highlight")).toBe(
       true
     );
@@ -44,7 +50,9 @@ describe("settings", () => {
     expect(document.documentElement.classList.contains("lce-highlight")).toBe(
       false
     );
-    expect(set).toHaveBeenCalledWith({ settings: { highlight: false } });
+    expect(set).toHaveBeenCalledWith({
+      settings: { highlight: false, autoUpdate: true },
+    });
   });
 
   it("degrades to defaults without an extension runtime", async () => {
@@ -53,7 +61,10 @@ describe("settings", () => {
 
     const settings = await import("../../../src/lib/settings");
     await expect(settings.initSettings()).resolves.toBeUndefined();
-    expect(settings.getSettings()).toEqual({ highlight: false });
+    expect(settings.getSettings()).toEqual({
+      highlight: false,
+      autoUpdate: true,
+    });
     expect(document.documentElement.classList.contains("lce-highlight")).toBe(
       false
     );
@@ -89,15 +100,38 @@ describe("settings", () => {
     );
 
     listener!({ settings: { newValue: { highlight: true } } }, "local");
-    expect(settings.getSettings()).toEqual({ highlight: true });
+    expect(settings.getSettings()).toEqual({
+      highlight: true,
+      autoUpdate: true,
+    });
     expect(document.documentElement.classList.contains("lce-highlight")).toBe(
       true
     );
 
     listener!({ settings: { newValue: { highlight: false } } }, "sync");
-    expect(settings.getSettings()).toEqual({ highlight: true });
+    expect(settings.getSettings()).toEqual({
+      highlight: true,
+      autoUpdate: true,
+    });
     expect(document.documentElement.classList.contains("lce-highlight")).toBe(
       true
     );
+  });
+
+  it("keeps auto-update on unless it was explicitly turned off", async () => {
+    vi.stubGlobal("chrome", {
+      storage: {
+        local: {
+          get: async () => ({ settings: { autoUpdate: false } }),
+          set: async () => {},
+        },
+      },
+    });
+    const settings = await import("../../../src/lib/settings");
+    await settings.initSettings();
+    expect(settings.getSettings()).toEqual({
+      highlight: false,
+      autoUpdate: false,
+    });
   });
 });

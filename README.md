@@ -26,12 +26,13 @@ The extension only changes parts of LeetCode that are locked behind Premium. Eve
 ## Privacy
 
 - No telemetry, analytics or tracking of any kind.
-- The data ships inside the extension, so it makes no network requests of its own.
-- The only permission is `storage`, which saves the popup's single setting.
+- A snapshot of the data ships inside the extension and works offline.
+- Once a day the extension checks this repository's public `data` branch for newer data. It asks the GitHub API for the branch's latest commit and downloads changed files from jsDelivr. Nothing about you or your LeetCode account is sent. You can turn this off with **Auto-update company data** in the popup, and the extension then uses only the bundled snapshot.
+- Permissions: `storage` saves the popup settings, and `alarms` schedules the daily check. No host permissions are needed.
 
 ## Data
 
-Company data comes from the community-maintained [liquidslr/leetcode-company-wise-problems](https://github.com/liquidslr/leetcode-company-wise-problems) repository. It is converted into compact JSON at build time. The popup shows the date of the bundled snapshot.
+Company data comes from the community-maintained [liquidslr/leetcode-company-wise-problems](https://github.com/liquidslr/leetcode-company-wise-problems) repository and is converted into compact JSON. A weekly GitHub Action (`.github/workflows/sync-data.yml`) rebuilds and validates it, then publishes it to the `data` branch whenever it changes. Installed extensions pick up the new data within a day, without a new release. The popup shows the date of the data in use and has a **Check now** button.
 
 ---
 
@@ -54,7 +55,7 @@ Temporary add-ons are removed when Firefox restarts.
 
 ### Popup
 
-Pin the extension and open its popup to toggle **Highlight injected changes**. This draws green outlines around everything the extension adds, which helps when reporting issues.
+Pin the extension and open its popup to toggle **Highlight injected changes**. This draws green outlines around everything the extension adds, which helps when reporting issues. The popup also has the **Auto-update company data** toggle and a **Check now** button.
 
 ---
 

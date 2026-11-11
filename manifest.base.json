@@ -1,7 +1,8 @@
 {
   "name": "LeetCode Enhancer",
   "description": "Community-powered company interview data for leetcode.com, rendered natively. No premium, no telemetry.",
-  "permissions": ["storage"],
+  "permissions": ["storage", "alarms"],
+  "background_script": "background.js",
   "action": {
     "default_popup": "popup.html",
     "default_title": "LeetCode Enhancer"

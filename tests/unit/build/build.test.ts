@@ -37,6 +37,7 @@ describe("build", () => {
         "popup.html",
         "popup.js",
         "popup.css",
+        "background.js",
         "manifest.json",
         "data/meta.json",
         "data/index.json",
@@ -57,8 +58,10 @@ describe("build", () => {
       const pkg = JSON.parse(await readFile("package.json", "utf8"));
       expect(manifest.version).toBe(pkg.version);
       expect(manifest.manifest_version).toBe(3);
-      expect(manifest.permissions).toEqual(["storage"]);
+      expect(manifest.permissions).toEqual(["storage", "alarms"]);
+      expect(manifest).not.toHaveProperty("host_permissions");
       expect(manifest.action?.default_popup).toBe("popup.html");
+      expect(manifest.background).toEqual({ service_worker: "background.js" });
 
       // Everything the manifest references must exist in the build.
       for (const relPath of Object.values<string>(manifest.icons ?? {})) {
@@ -97,6 +100,7 @@ describe("build", () => {
         await readFile(path.join(outdir, "manifest.json"), "utf8")
       );
       expect(manifest.browser_specific_settings?.gecko?.id).toBeTruthy();
+      expect(manifest.background).toEqual({ scripts: ["background.js"] });
     } finally {
       await rm(root, { recursive: true, force: true });
     }

@@ -66,6 +66,21 @@ happen in one browser session per browser, including at least one hard reload.
     Add-on…** → select `dist/manifest.json` → repeat 3–9 after
     `pnpm build:firefox` (re-run `pnpm build` afterwards for Chrome). The
     popup toggle uses the `storage` permission.
+11. Data updates (both browsers). The extension card shows no new permission
+    warning; `alarms` has none.
+    - fresh install → the service worker / background page console shows no
+      errors; DevTools → Application → IndexedDB → `lce-data` exists
+    - popup → **Check now**: before the `data` branch exists this reports a
+      failure (HTTP 404/422 from the branch lookup) and the bundled data keeps
+      working; once it exists and is newer than the bundle it reports
+      "Downloaded newer company data." and the date/counts line updates
+    - after an update, company / problem / problemset pages render as before;
+      open a page, run **Check now** again, then navigate: no errors
+    - turn **Auto-update company data** off → the date line falls back to the
+      bundled snapshot and pages use bundled data; turn it back on → a check
+      runs immediately
+    - offline (DevTools → Network → Offline on the worker) → **Check now**
+      fails quietly, pages keep working
 
 ## Notes
 

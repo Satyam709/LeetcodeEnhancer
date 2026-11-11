@@ -35,7 +35,7 @@ export interface DataLayer {
   topics(): Promise<string[]>;
 }
 
-function isMeta(value: unknown): value is Meta {
+export function isMeta(value: unknown): value is Meta {
   if (typeof value !== "object" || value === null) return false;
   const v = value as Record<string, unknown>;
   const source = v.source as Record<string, unknown> | null | undefined;

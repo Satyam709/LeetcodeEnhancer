@@ -1,9 +1,14 @@
 export interface Settings {
   /** Draw green outlines/accents around injected UI. Off by default. */
   highlight: boolean;
+  /** Let the background worker refresh company data from the data branch. */
+  autoUpdate: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { highlight: false };
+export const DEFAULT_SETTINGS: Settings = {
+  highlight: false,
+  autoUpdate: true,
+};
 export const SETTINGS_KEY = "settings";
 
 interface StorageArea {
@@ -48,7 +53,10 @@ function normalize(value: unknown): Settings {
     return { ...DEFAULT_SETTINGS };
   }
   const raw = value as Record<string, unknown>;
-  return { highlight: raw.highlight === true };
+  return {
+    highlight: raw.highlight === true,
+    autoUpdate: raw.autoUpdate !== false,
+  };
 }
 
 export function getSettings(): Settings {
