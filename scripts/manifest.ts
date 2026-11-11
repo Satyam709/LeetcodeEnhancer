@@ -45,8 +45,18 @@ export interface Manifest {
   action?: ManifestAction;
   web_accessible_resources?: WebAccessibleResource[];
   icons?: Record<string, string>;
-  browser_specific_settings?: { gecko: { id: string } };
+  browser_specific_settings?: { gecko: GeckoSettings };
 }
+
+export interface GeckoSettings {
+  id: string;
+  /** `data_collection_permissions` is honored from Firefox 140. */
+  strict_min_version: string;
+  /** AMO requires new extensions to declare this; we collect nothing. */
+  data_collection_permissions: { required: string[] };
+}
+
+export const GECKO_MIN_VERSION = "140.0";
 
 export function buildManifest(
   base: ManifestBase,
@@ -67,7 +77,13 @@ export function buildManifest(
   };
 
   if (opts.browser === "firefox") {
-    manifest.browser_specific_settings = { gecko: { id: base.gecko_id } };
+    manifest.browser_specific_settings = {
+      gecko: {
+        id: base.gecko_id,
+        strict_min_version: GECKO_MIN_VERSION,
+        data_collection_permissions: { required: ["none"] },
+      },
+    };
   }
 
   return manifest;

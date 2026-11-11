@@ -3,6 +3,10 @@
   "version": "3.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.15.1",
+  "engines": {
+    "node": ">=22"
+  },
   "description": "Community-powered company interview data for leetcode.com, rendered natively. No premium, no telemetry.",
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -11,6 +15,7 @@
     "data:sync": "tsx tools/sync-data/index.ts",
     "build": "tsx scripts/build.ts",
     "build:firefox": "tsx scripts/build.ts --browser=firefox",
+    "package": "tsx scripts/package.ts",
     "dev": "tsx scripts/build.ts --watch",
     "format": "prettier --write ."
   },

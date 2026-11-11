@@ -19,7 +19,10 @@ const base: ManifestBase = {
 
 describe("buildManifest", () => {
   it("injects manifest_version 3 and the version, without implicit permissions", () => {
-    const manifest = buildManifest(base, { version: "3.0.0", browser: "chrome" });
+    const manifest = buildManifest(base, {
+      version: "3.0.0",
+      browser: "chrome",
+    });
     expect(manifest.manifest_version).toBe(3);
     expect(manifest.name).toBe("LeetCode Enhancer");
     expect(manifest.version).toBe("3.0.0");
@@ -48,22 +51,32 @@ describe("buildManifest", () => {
   });
 
   it("carries the content script declaration through", () => {
-    const manifest = buildManifest(base, { version: "3.0.0", browser: "chrome" });
+    const manifest = buildManifest(base, {
+      version: "3.0.0",
+      browser: "chrome",
+    });
     expect(manifest.content_scripts).toEqual(base.content_scripts);
   });
 
   it("omits browser_specific_settings for chrome", () => {
-    const manifest = buildManifest(base, { version: "3.0.0", browser: "chrome" });
+    const manifest = buildManifest(base, {
+      version: "3.0.0",
+      browser: "chrome",
+    });
     expect(manifest.browser_specific_settings).toBeUndefined();
   });
 
-  it("adds the gecko id for firefox", () => {
+  it("adds the gecko id and a no-data-collection declaration for firefox", () => {
     const manifest = buildManifest(base, {
       version: "3.0.0",
       browser: "firefox",
     });
     expect(manifest.browser_specific_settings).toEqual({
-      gecko: { id: base.gecko_id },
+      gecko: {
+        id: base.gecko_id,
+        strict_min_version: "140.0",
+        data_collection_permissions: { required: ["none"] },
+      },
     });
   });
 
@@ -119,10 +132,9 @@ describe("buildManifest", () => {
     const pngSignature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
     for (const relPath of Object.values(icons)) {
       const bytes = await readFile(relPath);
-      expect(
-        [...bytes.subarray(0, 8)],
-        `${relPath} is not a PNG`
-      ).toEqual(pngSignature);
+      expect([...bytes.subarray(0, 8)], `${relPath} is not a PNG`).toEqual(
+        pngSignature
+      );
     }
   });
 });
